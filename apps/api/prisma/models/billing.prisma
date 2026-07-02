@@ -1,0 +1,190 @@
+enum FeatureType {
+  BOOLEAN // on/off flag e.g. "custom_domain"
+  LIMIT // hard-capped numeric e.g. "seats"
+  METERED // usage-based, can overage e.g. "api_calls"
+}
+
+enum BillingInterval {
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE // payment failed, in dunning/grace period
+  PAUSED
+  CANCELED
+  RESTRICTED //after grace period and dunning retries attempt ends.
+  EXPIRED
+  INCOMPLETE // created but first payment never completed
+}
+
+enum SubscriptionChangeType {
+  CREATED
+  UPGRADE
+  DOWNGRADE
+  PLAN_CHANGE // same tier, interval switch (monthly -> annual)
+  QUANTITY_CHANGE
+  REACTIVATION
+  CANCELLATION
+  PAUSE
+  RESUME
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  plans Plan[]
+
+  @@map("products")
+}
+
+model Plan {
+  id          String   @id @default(cuid())
+  productId   String   
+  name        String // "Free", "Pro", "Max", "Enterprise"
+  slug        String   @unique // "free", "pro", "max", "enterprise"
+  description String?
+  isActive    Boolean  @default(true) // available for new signups
+  isPublic    Boolean  @default(true) // visible on pricing page (enterprise may be false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product       Product        @relation(fields: [productId], references: [id])
+  prices        Price[]
+  planFeatures  PlanFeature[]
+  subscriptions Subscription[]
+
+  @@index([productId])
+  @@map("plans")
+}
+
+// One Plan can have multiple prices: monthly, annually, different currencies
+model Price {
+  id               String          @id @default(cuid())
+  planId           String
+  interval         BillingInterval
+  intervalCount    Int             @default(1) // e.g. every 3 months
+  currency         String          @default("NGN")
+  amount           Int // minor units (kobo)
+  trialPeriodDays  Int?
+  isActive         Boolean         @default(true)
+  paystackPlanCode String?         @unique // Paystack's plan_code for this cadence
+  createdAt        DateTime        @default(now())
+
+  plan          Plan           @relation(fields: [planId], references: [id])
+  subscriptions Subscription[]
+
+  @@unique([planId, interval, currency, intervalCount])
+  @@index([planId])
+  @@map("prices")
+}
+
+model Feature {
+  id   String      @id @default(cuid())
+  key  String      @unique // "seats", "api_calls", "storage_gb", "custom_domain"
+  name String
+  unit String? // "call", "GB", "seat"
+  type FeatureType
+
+  planFeatures   PlanFeature[]
+  usageRecords   UsageRecord[]
+  usageSummaries UsageSummary[]
+
+  @@map("features")
+}
+
+// Per-plan config for a feature: limit + overage pricing
+model PlanFeature {
+  id               String   @id @default(cuid())
+  planId           String
+  featureId        String
+  limit            Int? // null = unlimited; 0 = not included
+  overageAllowed   Boolean  @default(false)
+  overageUnitPrice Int? // minor units per unit over limit; null if not allowed
+  createdAt        DateTime @default(now())
+
+  plan    Plan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  feature Feature @relation(fields: [featureId], references: [id])
+
+  @@unique([planId, featureId])
+  @@map("plan_features")
+}
+
+model Subscription {
+  id         String             @id @default(cuid())
+  customerId String
+  planId     String
+  priceId    String
+  status     SubscriptionStatus @default(INCOMPLETE)
+  quantity   Int                @default(1) // e.g. seat count
+
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+
+  trialStart DateTime?
+  trialEnd   DateTime?
+
+  cancelAtPeriodEnd Boolean   @default(false)
+  cancelAt          DateTime? // scheduled cancellation
+  canceledAt        DateTime? // when cancel was requested
+  endedAt           DateTime? // when it actually stopped being active
+
+  pausedAt DateTime?
+  resumeAt DateTime?
+
+  paystackSubscriptionCode String? @unique
+  paystackEmailToken       String? // needed for Paystack disable/enable calls
+
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  plan     Plan     @relation(fields: [planId], references: [id])
+  price    Price    @relation(fields: [priceId], references: [id])
+
+  invoices       Invoice[]
+  usageRecords   UsageRecord[]
+  usageSummaries UsageSummary[]
+  changes        SubscriptionChange[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([currentPeriodEnd]) // for cron: find subs due for renewal/dunning
+  @@map("subscriptions")
+}
+
+model SubscriptionChange {
+  id                     String                 @id @default(cuid())
+  subscriptionId         String
+  changeType             SubscriptionChangeType
+  fromPlanId             String?
+  toPlanId               String?
+  fromPriceId            String?
+  toPriceId              String?
+  fromPaystackSubCode    String?
+  toPaystackSubCode      String?
+  fromPaystackEmailToken String?
+  toPaystackEmailToken   String?
+  fromQuantity           Int?
+  toQuantity             Int?
+  prorationAmount        Int? // signed minor units (credit negative, charge positive)
+  effectiveAt            DateTime               @default(now())
+  reason                 String?
+  initiatedBy            String? // "customer" | "admin" | "system:dunning" etc.
+  createdAt              DateTime               @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId, effectiveAt])
+  @@map("subscription_changes")
+}

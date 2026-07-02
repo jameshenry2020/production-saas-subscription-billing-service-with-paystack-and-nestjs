@@ -1,0 +1,130 @@
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  OVERDUE
+  VOID
+  UNCOLLECTIBLE
+}
+
+enum InvoiceItemType {
+  SUBSCRIPTION
+  OVERAGE
+  ONE_OFF
+  CREDIT_APPLIED
+  DISCOUNT
+  TAX
+  PRORATION
+}
+
+enum DunningStatus {
+  SCHEDULED
+  SUCCESS
+  FAILED
+  CANCELED
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  ABANDONED
+  REVERSED
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  invoiceNumber  String        @unique // e.g. INV-2026-000123
+  customerId     String
+  subscriptionId String?
+  status         InvoiceStatus @default(DRAFT)
+
+  currency       String @default("NGN")
+  subtotal       Int    @default(0)
+  discountAmount Int    @default(0)
+  taxAmount      Int    @default(0)
+  total          Int    @default(0)
+  amountPaid     Int    @default(0)
+  amountDue      Int    @default(0)
+
+  periodStart DateTime?
+  periodEnd   DateTime?
+  dueDate     DateTime?
+  paidAt      DateTime?
+  voidedAt    DateTime?
+
+  paystackReference  String?   @unique
+  attemptCount       Int       @default(0)
+  nextPaymentAttempt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  items           InvoiceItem[]
+  transactions    Transaction[]
+  dunningAttempts DunningAttempt[]
+
+  @@index([customerId, status])
+  @@index([status, dueDate]) // for cron: find OVERDUE / due-soon invoices
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String          @id @default(cuid())
+  invoiceId   String
+  type        InvoiceItemType
+  description String
+  featureId   String? // set when type = OVERAGE
+  quantity    Int             @default(1)
+  unitAmount  Int             @default(0)
+  amount      Int // quantity * unitAmount, minor units (can be negative for discounts/credits)
+  periodStart DateTime?
+  periodEnd   DateTime?
+  createdAt   DateTime        @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+}
+
+// Retry schedule + outcome for failed invoice payments (dunning).
+model DunningAttempt {
+  id            String        @id @default(cuid())
+  invoiceId     String
+  attemptNumber Int
+  status        DunningStatus @default(SCHEDULED)
+  scheduledAt   DateTime
+  executedAt    DateTime?
+  failureReason String?
+  nextRetryAt   DateTime?
+  createdAt     DateTime      @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([status, scheduledAt]) // cron picks up due attempts
+  @@map("dunning_attempts")
+}
+
+model Transaction {
+  id                String            @id @default(cuid())
+  customerId        String
+  invoiceId         String?
+  status            TransactionStatus @default(PENDING)
+  amount            Int
+  channel           String?
+  paystackReference String            @unique
+  paidAt            DateTime?
+  createdAt         DateTime          @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  invoice  Invoice? @relation(fields: [invoiceId], references: [id])
+
+  @@index([customerId])
+  @@index([invoiceId])
+  @@map("transactions")
+}

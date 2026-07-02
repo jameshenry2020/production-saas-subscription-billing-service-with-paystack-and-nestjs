@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UsagePeriodStatus {
+  OPEN
+  CLOSED
+  BILLED
+}
+
+model User {
+  id          String    @id @default(uuid())
+  email       String    @unique
+  password    String?
+  name        String
+  isActive    Boolean   @default(false) @map("is_active")
+  isAdmin     Boolean   @default(false) @map("is_admin")
+  lastLoginAt DateTime? @map("last_login_at")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  customer    Customer?
+
+  @@map("users")
+}
+
+model Customer {
+  id                 String          @id @default(cuid())
+  userId             String          @unique
+  paystackCustomerId String          @unique
+  createdAt          DateTime        @default(now())
+  user               User            @relation(fields: [userId], references: [id])
+  paymentMethods     PaymentMethod[]
+  subscriptions      Subscription[]
+  invoices           Invoice[]
+  transactions       Transaction[]
+  usageRecords       UsageRecord[]
+
+  @@index([userId])
+  @@map("customers")
+}
+
+model PaymentMethod {
+  id                        String   @id @default(cuid())
+  customerId                String
+  paystackAuthorizationCode String   @unique
+  cardType                  String?
+  bank                      String?
+  last4                     String?
+  expMonth                  String?
+  expYear                   String?
+  isReusable                Boolean  @default(true)
+  isDefault                 Boolean  @default(false)
+  createdAt                 DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("payment_methods")
+}
+
+model UsageRecord {
+  id             String   @id @default(cuid())
+  subscriptionId String
+  customerId     String
+  featureId      String
+  quantity       Int      @default(1)
+  occurredAt     DateTime @default(now())
+  idempotencyKey String?  @unique
+  source         String? // "api", "worker", "manual_adjustment"
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  customer     Customer     @relation(fields: [customerId], references: [id])
+  feature      Feature      @relation(fields: [featureId], references: [id])
+
+  @@index([subscriptionId, featureId, occurredAt])
+  @@map("usage_records")
+}
+
+model UsageSummary {
+  id             String            @id @default(cuid())
+  subscriptionId String
+  featureId      String
+  periodStart    DateTime
+  periodEnd      DateTime
+  totalUsage     Int               @default(0)
+  includedLimit  Int? // snapshot of plan limit at period start
+  overageUnits   Int               @default(0)
+  overageAmount  Int               @default(0) // minor units, computed at close
+  status         UsagePeriodStatus @default(OPEN)
+  closedAt       DateTime?
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  feature      Feature      @relation(fields: [featureId], references: [id])
+
+  @@unique([subscriptionId, featureId, periodStart, periodEnd])
+  @@index([status])
+  @@map("usage_summaries")
+}
