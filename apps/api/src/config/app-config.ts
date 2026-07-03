@@ -35,3 +35,22 @@ export class EmailConfiguration {
         this.fromEmail = config.fromEmail;
     }
 }
+
+@Configuration()
+@RequiredArgsConstructor()
+export class PaymentConfiguration {
+    @Value("PAYSTACK_SECRET_KEY")
+    @IsString()
+    paystackSecretKey: string;
+
+    @Value("PAYSTACK_PUBLIC_KEY")
+    @IsString()
+    paystackPublicKey: string;
+
+
+    constructor(config: Required<PaymentConfiguration>) {
+        this.paystackSecretKey = config.paystackSecretKey;
+        this.paystackPublicKey = config.paystackPublicKey;
+    }
+
+}
