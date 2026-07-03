@@ -1,9 +1,29 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Set global API prefix
+  app.setGlobalPrefix('api');
+
+  // Configure Swagger OpenAPI documentation
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle("Enterprise SaaS Subscription & Billing API")
+    .setDescription("API documentation for the enterprise SaaS subscription billing system with Paystack integration.")
+    .setVersion("1.0")
+    .addCookieAuth("session", {
+      type: "apiKey",
+      in: "cookie",
+      name: "session",
+      description: "Session JWT cookie for authentication",
+    })
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup("docs", app, document);
 
   // Register validation pipes globally
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));

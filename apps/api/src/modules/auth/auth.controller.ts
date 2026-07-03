@@ -4,7 +4,9 @@ import { AuthService } from "./auth.service";
 import { SignupDto } from "./dto/signup.dto";
 import { LoginDto } from "./dto/login.dto";
 import { SignupAdminDto } from "./dto/signup-admin.dto";
+import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
+@ApiTags("Authentication")
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -19,6 +21,9 @@ export class AuthController {
   }
 
   @Post("signup")
+  @ApiOperation({ summary: "Register a new standard user", description: "Registers a user and sets the session cookie." })
+  @ApiResponse({ status: 201, description: "User successfully registered and logged in" })
+  @ApiResponse({ status: 400, description: "Email already exists or validation failed" })
   @HttpCode(HttpStatus.CREATED)
   async signup(
     @Body() signupDto: SignupDto,
@@ -30,6 +35,10 @@ export class AuthController {
   }
 
   @Post("admin/signup")
+  @ApiOperation({ summary: "Register a new admin user", description: "Registers an admin user using a registration secret." })
+  @ApiResponse({ status: 201, description: "Admin user successfully registered and logged in" })
+  @ApiResponse({ status: 401, description: "Invalid admin registration secret" })
+  @ApiResponse({ status: 400, description: "Email already exists or validation failed" })
   @HttpCode(HttpStatus.CREATED)
   async signupAdmin(
     @Body() signupAdminDto: SignupAdminDto,
@@ -41,6 +50,9 @@ export class AuthController {
   }
 
   @Post("login")
+  @ApiOperation({ summary: "Log in with email and password", description: "Authenticates a user and sets the session cookie." })
+  @ApiResponse({ status: 200, description: "Successful login" })
+  @ApiResponse({ status: 401, description: "Invalid email or password" })
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() loginDto: LoginDto,
@@ -52,6 +64,8 @@ export class AuthController {
   }
 
   @Post("logout")
+  @ApiOperation({ summary: "Log out user session", description: "Clears the active session cookie." })
+  @ApiResponse({ status: 200, description: "Successful logout" })
   @HttpCode(HttpStatus.OK)
   async logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie("session", {
