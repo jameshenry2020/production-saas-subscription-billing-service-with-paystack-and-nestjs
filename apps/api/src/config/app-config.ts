@@ -54,3 +54,35 @@ export class PaymentConfiguration {
     }
 
 }
+
+@Configuration()
+@RequiredArgsConstructor()
+export class JwtConfiguration {
+    @Value("JWT_SECRET")
+    @IsString()
+    @IsNotEmpty()
+    secret: string;
+
+    @Value("JWT_EXPIRES_IN")
+    @IsString()
+    @IsNotEmpty()
+    expiresIn: string;
+
+    constructor(config: Required<JwtConfiguration>) {
+        this.secret = config.secret;
+        this.expiresIn = config.expiresIn;
+    }
+}
+
+@Configuration()
+@RequiredArgsConstructor()
+export class AdminConfiguration {
+    @Value("ADMIN_REGISTRATION_SECRET")
+    @IsString()
+    @IsNotEmpty({ message: "Admin registration secret is required" })
+    registrationSecret: string;
+
+    constructor(config: Required<AdminConfiguration>) {
+        this.registrationSecret = config.registrationSecret;
+    }
+}
