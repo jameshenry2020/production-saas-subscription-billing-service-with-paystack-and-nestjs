@@ -28,6 +28,7 @@ export type CustomerMinAggregateOutputType = {
   id: string | null
   userId: string | null
   paystackCustomerId: string | null
+  hasUsedTrial: boolean | null
   createdAt: Date | null
 }
 
@@ -35,6 +36,7 @@ export type CustomerMaxAggregateOutputType = {
   id: string | null
   userId: string | null
   paystackCustomerId: string | null
+  hasUsedTrial: boolean | null
   createdAt: Date | null
 }
 
@@ -42,6 +44,7 @@ export type CustomerCountAggregateOutputType = {
   id: number
   userId: number
   paystackCustomerId: number
+  hasUsedTrial: number
   createdAt: number
   _all: number
 }
@@ -51,6 +54,7 @@ export type CustomerMinAggregateInputType = {
   id?: true
   userId?: true
   paystackCustomerId?: true
+  hasUsedTrial?: true
   createdAt?: true
 }
 
@@ -58,6 +62,7 @@ export type CustomerMaxAggregateInputType = {
   id?: true
   userId?: true
   paystackCustomerId?: true
+  hasUsedTrial?: true
   createdAt?: true
 }
 
@@ -65,6 +70,7 @@ export type CustomerCountAggregateInputType = {
   id?: true
   userId?: true
   paystackCustomerId?: true
+  hasUsedTrial?: true
   createdAt?: true
   _all?: true
 }
@@ -145,6 +151,7 @@ export type CustomerGroupByOutputType = {
   id: string
   userId: string
   paystackCustomerId: string
+  hasUsedTrial: boolean
   createdAt: Date
   _count: CustomerCountAggregateOutputType | null
   _min: CustomerMinAggregateOutputType | null
@@ -173,6 +180,7 @@ export type CustomerWhereInput = {
   id?: Prisma.StringFilter<"Customer"> | string
   userId?: Prisma.StringFilter<"Customer"> | string
   paystackCustomerId?: Prisma.StringFilter<"Customer"> | string
+  hasUsedTrial?: Prisma.BoolFilter<"Customer"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   paymentMethods?: Prisma.PaymentMethodListRelationFilter
@@ -186,6 +194,7 @@ export type CustomerOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   paystackCustomerId?: Prisma.SortOrder
+  hasUsedTrial?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   paymentMethods?: Prisma.PaymentMethodOrderByRelationAggregateInput
@@ -202,6 +211,7 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.CustomerWhereInput | Prisma.CustomerWhereInput[]
   OR?: Prisma.CustomerWhereInput[]
   NOT?: Prisma.CustomerWhereInput | Prisma.CustomerWhereInput[]
+  hasUsedTrial?: Prisma.BoolFilter<"Customer"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   paymentMethods?: Prisma.PaymentMethodListRelationFilter
@@ -215,6 +225,7 @@ export type CustomerOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   paystackCustomerId?: Prisma.SortOrder
+  hasUsedTrial?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.CustomerCountOrderByAggregateInput
   _max?: Prisma.CustomerMaxOrderByAggregateInput
@@ -228,12 +239,14 @@ export type CustomerScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Customer"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Customer"> | string
   paystackCustomerId?: Prisma.StringWithAggregatesFilter<"Customer"> | string
+  hasUsedTrial?: Prisma.BoolWithAggregatesFilter<"Customer"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Customer"> | Date | string
 }
 
 export type CustomerCreateInput = {
   id?: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutCustomerInput
   paymentMethods?: Prisma.PaymentMethodCreateNestedManyWithoutCustomerInput
@@ -247,6 +260,7 @@ export type CustomerUncheckedCreateInput = {
   id?: string
   userId: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   paymentMethods?: Prisma.PaymentMethodUncheckedCreateNestedManyWithoutCustomerInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutCustomerInput
@@ -258,6 +272,7 @@ export type CustomerUncheckedCreateInput = {
 export type CustomerUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutCustomerNestedInput
   paymentMethods?: Prisma.PaymentMethodUpdateManyWithoutCustomerNestedInput
@@ -271,6 +286,7 @@ export type CustomerUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentMethods?: Prisma.PaymentMethodUncheckedUpdateManyWithoutCustomerNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -283,12 +299,14 @@ export type CustomerCreateManyInput = {
   id?: string
   userId: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
 }
 
 export type CustomerUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -296,6 +314,7 @@ export type CustomerUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -313,6 +332,7 @@ export type CustomerCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   paystackCustomerId?: Prisma.SortOrder
+  hasUsedTrial?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -320,6 +340,7 @@ export type CustomerMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   paystackCustomerId?: Prisma.SortOrder
+  hasUsedTrial?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -327,6 +348,7 @@ export type CustomerMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   paystackCustomerId?: Prisma.SortOrder
+  hasUsedTrial?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -435,6 +457,7 @@ export type CustomerUpdateOneRequiredWithoutUsageRecordsNestedInput = {
 export type CustomerCreateWithoutSubscriptionsInput = {
   id?: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutCustomerInput
   paymentMethods?: Prisma.PaymentMethodCreateNestedManyWithoutCustomerInput
@@ -447,6 +470,7 @@ export type CustomerUncheckedCreateWithoutSubscriptionsInput = {
   id?: string
   userId: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   paymentMethods?: Prisma.PaymentMethodUncheckedCreateNestedManyWithoutCustomerInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCustomerInput
@@ -473,6 +497,7 @@ export type CustomerUpdateToOneWithWhereWithoutSubscriptionsInput = {
 export type CustomerUpdateWithoutSubscriptionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutCustomerNestedInput
   paymentMethods?: Prisma.PaymentMethodUpdateManyWithoutCustomerNestedInput
@@ -485,6 +510,7 @@ export type CustomerUncheckedUpdateWithoutSubscriptionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentMethods?: Prisma.PaymentMethodUncheckedUpdateManyWithoutCustomerNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCustomerNestedInput
@@ -495,6 +521,7 @@ export type CustomerUncheckedUpdateWithoutSubscriptionsInput = {
 export type CustomerCreateWithoutInvoicesInput = {
   id?: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutCustomerInput
   paymentMethods?: Prisma.PaymentMethodCreateNestedManyWithoutCustomerInput
@@ -507,6 +534,7 @@ export type CustomerUncheckedCreateWithoutInvoicesInput = {
   id?: string
   userId: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   paymentMethods?: Prisma.PaymentMethodUncheckedCreateNestedManyWithoutCustomerInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutCustomerInput
@@ -533,6 +561,7 @@ export type CustomerUpdateToOneWithWhereWithoutInvoicesInput = {
 export type CustomerUpdateWithoutInvoicesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutCustomerNestedInput
   paymentMethods?: Prisma.PaymentMethodUpdateManyWithoutCustomerNestedInput
@@ -545,6 +574,7 @@ export type CustomerUncheckedUpdateWithoutInvoicesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentMethods?: Prisma.PaymentMethodUncheckedUpdateManyWithoutCustomerNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -555,6 +585,7 @@ export type CustomerUncheckedUpdateWithoutInvoicesInput = {
 export type CustomerCreateWithoutTransactionsInput = {
   id?: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutCustomerInput
   paymentMethods?: Prisma.PaymentMethodCreateNestedManyWithoutCustomerInput
@@ -567,6 +598,7 @@ export type CustomerUncheckedCreateWithoutTransactionsInput = {
   id?: string
   userId: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   paymentMethods?: Prisma.PaymentMethodUncheckedCreateNestedManyWithoutCustomerInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutCustomerInput
@@ -593,6 +625,7 @@ export type CustomerUpdateToOneWithWhereWithoutTransactionsInput = {
 export type CustomerUpdateWithoutTransactionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutCustomerNestedInput
   paymentMethods?: Prisma.PaymentMethodUpdateManyWithoutCustomerNestedInput
@@ -605,6 +638,7 @@ export type CustomerUncheckedUpdateWithoutTransactionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentMethods?: Prisma.PaymentMethodUncheckedUpdateManyWithoutCustomerNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -615,6 +649,7 @@ export type CustomerUncheckedUpdateWithoutTransactionsInput = {
 export type CustomerCreateWithoutUserInput = {
   id?: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   paymentMethods?: Prisma.PaymentMethodCreateNestedManyWithoutCustomerInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutCustomerInput
@@ -626,6 +661,7 @@ export type CustomerCreateWithoutUserInput = {
 export type CustomerUncheckedCreateWithoutUserInput = {
   id?: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   paymentMethods?: Prisma.PaymentMethodUncheckedCreateNestedManyWithoutCustomerInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutCustomerInput
@@ -653,6 +689,7 @@ export type CustomerUpdateToOneWithWhereWithoutUserInput = {
 export type CustomerUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentMethods?: Prisma.PaymentMethodUpdateManyWithoutCustomerNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutCustomerNestedInput
@@ -664,6 +701,7 @@ export type CustomerUpdateWithoutUserInput = {
 export type CustomerUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentMethods?: Prisma.PaymentMethodUncheckedUpdateManyWithoutCustomerNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -675,6 +713,7 @@ export type CustomerUncheckedUpdateWithoutUserInput = {
 export type CustomerCreateWithoutPaymentMethodsInput = {
   id?: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutCustomerInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutCustomerInput
@@ -687,6 +726,7 @@ export type CustomerUncheckedCreateWithoutPaymentMethodsInput = {
   id?: string
   userId: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutCustomerInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCustomerInput
@@ -713,6 +753,7 @@ export type CustomerUpdateToOneWithWhereWithoutPaymentMethodsInput = {
 export type CustomerUpdateWithoutPaymentMethodsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutCustomerNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutCustomerNestedInput
@@ -725,6 +766,7 @@ export type CustomerUncheckedUpdateWithoutPaymentMethodsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutCustomerNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCustomerNestedInput
@@ -735,6 +777,7 @@ export type CustomerUncheckedUpdateWithoutPaymentMethodsInput = {
 export type CustomerCreateWithoutUsageRecordsInput = {
   id?: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutCustomerInput
   paymentMethods?: Prisma.PaymentMethodCreateNestedManyWithoutCustomerInput
@@ -747,6 +790,7 @@ export type CustomerUncheckedCreateWithoutUsageRecordsInput = {
   id?: string
   userId: string
   paystackCustomerId: string
+  hasUsedTrial?: boolean
   createdAt?: Date | string
   paymentMethods?: Prisma.PaymentMethodUncheckedCreateNestedManyWithoutCustomerInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutCustomerInput
@@ -773,6 +817,7 @@ export type CustomerUpdateToOneWithWhereWithoutUsageRecordsInput = {
 export type CustomerUpdateWithoutUsageRecordsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutCustomerNestedInput
   paymentMethods?: Prisma.PaymentMethodUpdateManyWithoutCustomerNestedInput
@@ -785,6 +830,7 @@ export type CustomerUncheckedUpdateWithoutUsageRecordsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   paystackCustomerId?: Prisma.StringFieldUpdateOperationsInput | string
+  hasUsedTrial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paymentMethods?: Prisma.PaymentMethodUncheckedUpdateManyWithoutCustomerNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutCustomerNestedInput
@@ -863,6 +909,7 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   id?: boolean
   userId?: boolean
   paystackCustomerId?: boolean
+  hasUsedTrial?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   paymentMethods?: boolean | Prisma.Customer$paymentMethodsArgs<ExtArgs>
@@ -877,6 +924,7 @@ export type CustomerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   id?: boolean
   userId?: boolean
   paystackCustomerId?: boolean
+  hasUsedTrial?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["customer"]>
@@ -885,6 +933,7 @@ export type CustomerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   id?: boolean
   userId?: boolean
   paystackCustomerId?: boolean
+  hasUsedTrial?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["customer"]>
@@ -893,10 +942,11 @@ export type CustomerSelectScalar = {
   id?: boolean
   userId?: boolean
   paystackCustomerId?: boolean
+  hasUsedTrial?: boolean
   createdAt?: boolean
 }
 
-export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "paystackCustomerId" | "createdAt", ExtArgs["result"]["customer"]>
+export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "paystackCustomerId" | "hasUsedTrial" | "createdAt", ExtArgs["result"]["customer"]>
 export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   paymentMethods?: boolean | Prisma.Customer$paymentMethodsArgs<ExtArgs>
@@ -927,6 +977,7 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     id: string
     userId: string
     paystackCustomerId: string
+    hasUsedTrial: boolean
     createdAt: Date
   }, ExtArgs["result"]["customer"]>
   composites: {}
@@ -1360,6 +1411,7 @@ export interface CustomerFieldRefs {
   readonly id: Prisma.FieldRef<"Customer", 'String'>
   readonly userId: Prisma.FieldRef<"Customer", 'String'>
   readonly paystackCustomerId: Prisma.FieldRef<"Customer", 'String'>
+  readonly hasUsedTrial: Prisma.FieldRef<"Customer", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Customer", 'DateTime'>
 }
     

@@ -357,6 +357,32 @@ async function main() {
     }
   }
 
+  // ── System Settings (Feature Flags) ────────────────────────────────────────
+  console.log("\nSeeding system settings...");
+
+  const systemSettings = [
+    {
+      key: "FREE_PLAN_AUTO_SUBSCRIBE",
+      value: "true",
+      description:
+        "When true: new users are automatically subscribed to the Free plan on signup. " +
+        "When false: only a Customer profile is created; users must choose a plan (trial mode enabled).",
+    },
+  ];
+
+  for (const setting of systemSettings) {
+    await prisma.systemSetting.upsert({
+      where: { key: setting.key },
+      update: { description: setting.description },
+      create: {
+        key: setting.key,
+        value: setting.value,
+        description: setting.description,
+      },
+    });
+    console.log(`- SystemSetting: ${setting.key} = ${setting.value}`);
+  }
+
   console.log("Seeding completed successfully.");
 }
 

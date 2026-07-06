@@ -58,6 +58,8 @@ export const ModelName = {
   PlanFeature: 'PlanFeature',
   Subscription: 'Subscription',
   SubscriptionChange: 'SubscriptionChange',
+  SubscriptionPayment: 'SubscriptionPayment',
+  SystemSetting: 'SystemSetting',
   Invoice: 'Invoice',
   InvoiceItem: 'InvoiceItem',
   DunningAttempt: 'DunningAttempt',
@@ -66,7 +68,8 @@ export const ModelName = {
   Customer: 'Customer',
   PaymentMethod: 'PaymentMethod',
   UsageRecord: 'UsageRecord',
-  UsageSummary: 'UsageSummary'
+  UsageSummary: 'UsageSummary',
+  IdempotencyKey: 'IdempotencyKey'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -204,6 +207,34 @@ export const SubscriptionChangeScalarFieldEnum = {
 export type SubscriptionChangeScalarFieldEnum = (typeof SubscriptionChangeScalarFieldEnum)[keyof typeof SubscriptionChangeScalarFieldEnum]
 
 
+export const SubscriptionPaymentScalarFieldEnum = {
+  id: 'id',
+  subscriptionId: 'subscriptionId',
+  status: 'status',
+  amount: 'amount',
+  currency: 'currency',
+  paystackReference: 'paystackReference',
+  targetPriceId: 'targetPriceId',
+  targetPlanId: 'targetPlanId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SubscriptionPaymentScalarFieldEnum = (typeof SubscriptionPaymentScalarFieldEnum)[keyof typeof SubscriptionPaymentScalarFieldEnum]
+
+
+export const SystemSettingScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  value: 'value',
+  description: 'description',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+} as const
+
+export type SystemSettingScalarFieldEnum = (typeof SystemSettingScalarFieldEnum)[keyof typeof SystemSettingScalarFieldEnum]
+
+
 export const InvoiceScalarFieldEnum = {
   id: 'id',
   invoiceNumber: 'invoiceNumber',
@@ -298,6 +329,7 @@ export const CustomerScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   paystackCustomerId: 'paystackCustomerId',
+  hasUsedTrial: 'hasUsedTrial',
   createdAt: 'createdAt'
 } as const
 
@@ -354,6 +386,18 @@ export const UsageSummaryScalarFieldEnum = {
 export type UsageSummaryScalarFieldEnum = (typeof UsageSummaryScalarFieldEnum)[keyof typeof UsageSummaryScalarFieldEnum]
 
 
+export const IdempotencyKeyScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  responseStatus: 'responseStatus',
+  responseBody: 'responseBody',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type IdempotencyKeyScalarFieldEnum = (typeof IdempotencyKeyScalarFieldEnum)[keyof typeof IdempotencyKeyScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -368,6 +412,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

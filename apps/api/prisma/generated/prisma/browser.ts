@@ -53,6 +53,16 @@ export type Subscription = Prisma.SubscriptionModel
  */
 export type SubscriptionChange = Prisma.SubscriptionChangeModel
 /**
+ * Model SubscriptionPayment
+ * 
+ */
+export type SubscriptionPayment = Prisma.SubscriptionPaymentModel
+/**
+ * Model SystemSetting
+ * 
+ */
+export type SystemSetting = Prisma.SystemSettingModel
+/**
  * Model Invoice
  * 
  */
@@ -97,3 +107,8 @@ export type UsageRecord = Prisma.UsageRecordModel
  * 
  */
 export type UsageSummary = Prisma.UsageSummaryModel
+/**
+ * Model IdempotencyKey
+ * 
+ */
+export type IdempotencyKey = Prisma.IdempotencyKeyModel

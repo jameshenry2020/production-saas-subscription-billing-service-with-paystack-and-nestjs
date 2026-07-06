@@ -56,6 +56,15 @@ export const SubscriptionChangeType = {
 export type SubscriptionChangeType = (typeof SubscriptionChangeType)[keyof typeof SubscriptionChangeType]
 
 
+export const SubscriptionPaymentStatus = {
+  PENDING: 'PENDING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED'
+} as const
+
+export type SubscriptionPaymentStatus = (typeof SubscriptionPaymentStatus)[keyof typeof SubscriptionPaymentStatus]
+
+
 export const InvoiceStatus = {
   DRAFT: 'DRAFT',
   OPEN: 'OPEN',

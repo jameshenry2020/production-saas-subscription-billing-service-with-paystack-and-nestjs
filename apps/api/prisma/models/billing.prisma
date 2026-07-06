@@ -18,7 +18,7 @@ enum SubscriptionStatus {
   CANCELED
   RESTRICTED //after grace period and dunning retries attempt ends.
   EXPIRED
-  INCOMPLETE // created but first payment never completed
+  INCOMPLETE // created but first payment never completed/confirmed
 }
 
 enum SubscriptionChangeType {
@@ -156,6 +156,7 @@ model Subscription {
   usageRecords   UsageRecord[]
   usageSummaries UsageSummary[]
   changes        SubscriptionChange[]
+  payments       SubscriptionPayment[]
 
   @@index([customerId])
   @@index([status])
@@ -187,4 +188,40 @@ model SubscriptionChange {
 
   @@index([subscriptionId, effectiveAt])
   @@map("subscription_changes")
+}
+
+enum SubscriptionPaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model SubscriptionPayment {
+  id                String                    @id @default(cuid())
+  subscriptionId    String
+  status            SubscriptionPaymentStatus @default(PENDING)
+  amount            Int // minor units
+  currency          String                    @default("NGN")
+  paystackReference String                    @unique
+  targetPriceId     String
+  targetPlanId      String
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@map("subscription_payments")
+}
+
+// Runtime feature flags and system configuration (admin-controlled, Redis-cached)
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique // e.g. "FREE_PLAN_AUTO_SUBSCRIBE"
+  value       String // "true" / "false" / serialized JSON
+  description String?
+  updatedAt   DateTime @updatedAt
+  updatedBy   String? // admin userId who last changed this
+
+  @@map("system_settings")
 }

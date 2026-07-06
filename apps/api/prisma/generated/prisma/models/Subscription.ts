@@ -347,6 +347,7 @@ export type SubscriptionWhereInput = {
   usageRecords?: Prisma.UsageRecordListRelationFilter
   usageSummaries?: Prisma.UsageSummaryListRelationFilter
   changes?: Prisma.SubscriptionChangeListRelationFilter
+  payments?: Prisma.SubscriptionPaymentListRelationFilter
 }
 
 export type SubscriptionOrderByWithRelationInput = {
@@ -378,6 +379,7 @@ export type SubscriptionOrderByWithRelationInput = {
   usageRecords?: Prisma.UsageRecordOrderByRelationAggregateInput
   usageSummaries?: Prisma.UsageSummaryOrderByRelationAggregateInput
   changes?: Prisma.SubscriptionChangeOrderByRelationAggregateInput
+  payments?: Prisma.SubscriptionPaymentOrderByRelationAggregateInput
 }
 
 export type SubscriptionWhereUniqueInput = Prisma.AtLeast<{
@@ -412,6 +414,7 @@ export type SubscriptionWhereUniqueInput = Prisma.AtLeast<{
   usageRecords?: Prisma.UsageRecordListRelationFilter
   usageSummaries?: Prisma.UsageSummaryListRelationFilter
   changes?: Prisma.SubscriptionChangeListRelationFilter
+  payments?: Prisma.SubscriptionPaymentListRelationFilter
 }, "id" | "paystackSubscriptionCode">
 
 export type SubscriptionOrderByWithAggregationInput = {
@@ -496,6 +499,7 @@ export type SubscriptionCreateInput = {
   usageRecords?: Prisma.UsageRecordCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionUncheckedCreateInput = {
@@ -524,6 +528,7 @@ export type SubscriptionUncheckedCreateInput = {
   usageRecords?: Prisma.UsageRecordUncheckedCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryUncheckedCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeUncheckedCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentUncheckedCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionUpdateInput = {
@@ -552,6 +557,7 @@ export type SubscriptionUpdateInput = {
   usageRecords?: Prisma.UsageRecordUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionUncheckedUpdateInput = {
@@ -580,6 +586,7 @@ export type SubscriptionUncheckedUpdateInput = {
   usageRecords?: Prisma.UsageRecordUncheckedUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUncheckedUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUncheckedUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUncheckedUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionCreateManyInput = {
@@ -855,6 +862,20 @@ export type SubscriptionUpdateOneRequiredWithoutChangesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SubscriptionUpdateToOneWithWhereWithoutChangesInput, Prisma.SubscriptionUpdateWithoutChangesInput>, Prisma.SubscriptionUncheckedUpdateWithoutChangesInput>
 }
 
+export type SubscriptionCreateNestedOneWithoutPaymentsInput = {
+  create?: Prisma.XOR<Prisma.SubscriptionCreateWithoutPaymentsInput, Prisma.SubscriptionUncheckedCreateWithoutPaymentsInput>
+  connectOrCreate?: Prisma.SubscriptionCreateOrConnectWithoutPaymentsInput
+  connect?: Prisma.SubscriptionWhereUniqueInput
+}
+
+export type SubscriptionUpdateOneRequiredWithoutPaymentsNestedInput = {
+  create?: Prisma.XOR<Prisma.SubscriptionCreateWithoutPaymentsInput, Prisma.SubscriptionUncheckedCreateWithoutPaymentsInput>
+  connectOrCreate?: Prisma.SubscriptionCreateOrConnectWithoutPaymentsInput
+  upsert?: Prisma.SubscriptionUpsertWithoutPaymentsInput
+  connect?: Prisma.SubscriptionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SubscriptionUpdateToOneWithWhereWithoutPaymentsInput, Prisma.SubscriptionUpdateWithoutPaymentsInput>, Prisma.SubscriptionUncheckedUpdateWithoutPaymentsInput>
+}
+
 export type SubscriptionCreateNestedOneWithoutInvoicesInput = {
   create?: Prisma.XOR<Prisma.SubscriptionCreateWithoutInvoicesInput, Prisma.SubscriptionUncheckedCreateWithoutInvoicesInput>
   connectOrCreate?: Prisma.SubscriptionCreateOrConnectWithoutInvoicesInput
@@ -966,6 +987,7 @@ export type SubscriptionCreateWithoutPlanInput = {
   usageRecords?: Prisma.UsageRecordCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionUncheckedCreateWithoutPlanInput = {
@@ -993,6 +1015,7 @@ export type SubscriptionUncheckedCreateWithoutPlanInput = {
   usageRecords?: Prisma.UsageRecordUncheckedCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryUncheckedCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeUncheckedCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentUncheckedCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionCreateOrConnectWithoutPlanInput = {
@@ -1073,6 +1096,7 @@ export type SubscriptionCreateWithoutPriceInput = {
   usageRecords?: Prisma.UsageRecordCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionUncheckedCreateWithoutPriceInput = {
@@ -1100,6 +1124,7 @@ export type SubscriptionUncheckedCreateWithoutPriceInput = {
   usageRecords?: Prisma.UsageRecordUncheckedCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryUncheckedCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeUncheckedCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentUncheckedCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionCreateOrConnectWithoutPriceInput = {
@@ -1153,6 +1178,7 @@ export type SubscriptionCreateWithoutChangesInput = {
   invoices?: Prisma.InvoiceCreateNestedManyWithoutSubscriptionInput
   usageRecords?: Prisma.UsageRecordCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionUncheckedCreateWithoutChangesInput = {
@@ -1180,6 +1206,7 @@ export type SubscriptionUncheckedCreateWithoutChangesInput = {
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput
   usageRecords?: Prisma.UsageRecordUncheckedCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryUncheckedCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentUncheckedCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionCreateOrConnectWithoutChangesInput = {
@@ -1223,6 +1250,7 @@ export type SubscriptionUpdateWithoutChangesInput = {
   invoices?: Prisma.InvoiceUpdateManyWithoutSubscriptionNestedInput
   usageRecords?: Prisma.UsageRecordUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionUncheckedUpdateWithoutChangesInput = {
@@ -1250,6 +1278,135 @@ export type SubscriptionUncheckedUpdateWithoutChangesInput = {
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput
   usageRecords?: Prisma.UsageRecordUncheckedUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUncheckedUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUncheckedUpdateManyWithoutSubscriptionNestedInput
+}
+
+export type SubscriptionCreateWithoutPaymentsInput = {
+  id?: string
+  status?: $Enums.SubscriptionStatus
+  quantity?: number
+  currentPeriodStart: Date | string
+  currentPeriodEnd: Date | string
+  trialStart?: Date | string | null
+  trialEnd?: Date | string | null
+  cancelAtPeriodEnd?: boolean
+  cancelAt?: Date | string | null
+  canceledAt?: Date | string | null
+  endedAt?: Date | string | null
+  pausedAt?: Date | string | null
+  resumeAt?: Date | string | null
+  paystackSubscriptionCode?: string | null
+  paystackEmailToken?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  customer: Prisma.CustomerCreateNestedOneWithoutSubscriptionsInput
+  plan: Prisma.PlanCreateNestedOneWithoutSubscriptionsInput
+  price: Prisma.PriceCreateNestedOneWithoutSubscriptionsInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutSubscriptionInput
+  usageRecords?: Prisma.UsageRecordCreateNestedManyWithoutSubscriptionInput
+  usageSummaries?: Prisma.UsageSummaryCreateNestedManyWithoutSubscriptionInput
+  changes?: Prisma.SubscriptionChangeCreateNestedManyWithoutSubscriptionInput
+}
+
+export type SubscriptionUncheckedCreateWithoutPaymentsInput = {
+  id?: string
+  customerId: string
+  planId: string
+  priceId: string
+  status?: $Enums.SubscriptionStatus
+  quantity?: number
+  currentPeriodStart: Date | string
+  currentPeriodEnd: Date | string
+  trialStart?: Date | string | null
+  trialEnd?: Date | string | null
+  cancelAtPeriodEnd?: boolean
+  cancelAt?: Date | string | null
+  canceledAt?: Date | string | null
+  endedAt?: Date | string | null
+  pausedAt?: Date | string | null
+  resumeAt?: Date | string | null
+  paystackSubscriptionCode?: string | null
+  paystackEmailToken?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput
+  usageRecords?: Prisma.UsageRecordUncheckedCreateNestedManyWithoutSubscriptionInput
+  usageSummaries?: Prisma.UsageSummaryUncheckedCreateNestedManyWithoutSubscriptionInput
+  changes?: Prisma.SubscriptionChangeUncheckedCreateNestedManyWithoutSubscriptionInput
+}
+
+export type SubscriptionCreateOrConnectWithoutPaymentsInput = {
+  where: Prisma.SubscriptionWhereUniqueInput
+  create: Prisma.XOR<Prisma.SubscriptionCreateWithoutPaymentsInput, Prisma.SubscriptionUncheckedCreateWithoutPaymentsInput>
+}
+
+export type SubscriptionUpsertWithoutPaymentsInput = {
+  update: Prisma.XOR<Prisma.SubscriptionUpdateWithoutPaymentsInput, Prisma.SubscriptionUncheckedUpdateWithoutPaymentsInput>
+  create: Prisma.XOR<Prisma.SubscriptionCreateWithoutPaymentsInput, Prisma.SubscriptionUncheckedCreateWithoutPaymentsInput>
+  where?: Prisma.SubscriptionWhereInput
+}
+
+export type SubscriptionUpdateToOneWithWhereWithoutPaymentsInput = {
+  where?: Prisma.SubscriptionWhereInput
+  data: Prisma.XOR<Prisma.SubscriptionUpdateWithoutPaymentsInput, Prisma.SubscriptionUncheckedUpdateWithoutPaymentsInput>
+}
+
+export type SubscriptionUpdateWithoutPaymentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  currentPeriodStart?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  currentPeriodEnd?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  trialStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trialEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cancelAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canceledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pausedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resumeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paystackSubscriptionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paystackEmailToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  customer?: Prisma.CustomerUpdateOneRequiredWithoutSubscriptionsNestedInput
+  plan?: Prisma.PlanUpdateOneRequiredWithoutSubscriptionsNestedInput
+  price?: Prisma.PriceUpdateOneRequiredWithoutSubscriptionsNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutSubscriptionNestedInput
+  usageRecords?: Prisma.UsageRecordUpdateManyWithoutSubscriptionNestedInput
+  usageSummaries?: Prisma.UsageSummaryUpdateManyWithoutSubscriptionNestedInput
+  changes?: Prisma.SubscriptionChangeUpdateManyWithoutSubscriptionNestedInput
+}
+
+export type SubscriptionUncheckedUpdateWithoutPaymentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string
+  planId?: Prisma.StringFieldUpdateOperationsInput | string
+  priceId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  currentPeriodStart?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  currentPeriodEnd?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  trialStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  trialEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cancelAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canceledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pausedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resumeAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paystackSubscriptionCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paystackEmailToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput
+  usageRecords?: Prisma.UsageRecordUncheckedUpdateManyWithoutSubscriptionNestedInput
+  usageSummaries?: Prisma.UsageSummaryUncheckedUpdateManyWithoutSubscriptionNestedInput
+  changes?: Prisma.SubscriptionChangeUncheckedUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionCreateWithoutInvoicesInput = {
@@ -1277,6 +1434,7 @@ export type SubscriptionCreateWithoutInvoicesInput = {
   usageRecords?: Prisma.UsageRecordCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionUncheckedCreateWithoutInvoicesInput = {
@@ -1304,6 +1462,7 @@ export type SubscriptionUncheckedCreateWithoutInvoicesInput = {
   usageRecords?: Prisma.UsageRecordUncheckedCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryUncheckedCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeUncheckedCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentUncheckedCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionCreateOrConnectWithoutInvoicesInput = {
@@ -1347,6 +1506,7 @@ export type SubscriptionUpdateWithoutInvoicesInput = {
   usageRecords?: Prisma.UsageRecordUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionUncheckedUpdateWithoutInvoicesInput = {
@@ -1374,6 +1534,7 @@ export type SubscriptionUncheckedUpdateWithoutInvoicesInput = {
   usageRecords?: Prisma.UsageRecordUncheckedUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUncheckedUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUncheckedUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUncheckedUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionCreateWithoutCustomerInput = {
@@ -1401,6 +1562,7 @@ export type SubscriptionCreateWithoutCustomerInput = {
   usageRecords?: Prisma.UsageRecordCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionUncheckedCreateWithoutCustomerInput = {
@@ -1428,6 +1590,7 @@ export type SubscriptionUncheckedCreateWithoutCustomerInput = {
   usageRecords?: Prisma.UsageRecordUncheckedCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryUncheckedCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeUncheckedCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentUncheckedCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionCreateOrConnectWithoutCustomerInput = {
@@ -1481,6 +1644,7 @@ export type SubscriptionCreateWithoutUsageRecordsInput = {
   invoices?: Prisma.InvoiceCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionUncheckedCreateWithoutUsageRecordsInput = {
@@ -1508,6 +1672,7 @@ export type SubscriptionUncheckedCreateWithoutUsageRecordsInput = {
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput
   usageSummaries?: Prisma.UsageSummaryUncheckedCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeUncheckedCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentUncheckedCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionCreateOrConnectWithoutUsageRecordsInput = {
@@ -1551,6 +1716,7 @@ export type SubscriptionUpdateWithoutUsageRecordsInput = {
   invoices?: Prisma.InvoiceUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionUncheckedUpdateWithoutUsageRecordsInput = {
@@ -1578,6 +1744,7 @@ export type SubscriptionUncheckedUpdateWithoutUsageRecordsInput = {
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUncheckedUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUncheckedUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUncheckedUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionCreateWithoutUsageSummariesInput = {
@@ -1605,6 +1772,7 @@ export type SubscriptionCreateWithoutUsageSummariesInput = {
   invoices?: Prisma.InvoiceCreateNestedManyWithoutSubscriptionInput
   usageRecords?: Prisma.UsageRecordCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionUncheckedCreateWithoutUsageSummariesInput = {
@@ -1632,6 +1800,7 @@ export type SubscriptionUncheckedCreateWithoutUsageSummariesInput = {
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutSubscriptionInput
   usageRecords?: Prisma.UsageRecordUncheckedCreateNestedManyWithoutSubscriptionInput
   changes?: Prisma.SubscriptionChangeUncheckedCreateNestedManyWithoutSubscriptionInput
+  payments?: Prisma.SubscriptionPaymentUncheckedCreateNestedManyWithoutSubscriptionInput
 }
 
 export type SubscriptionCreateOrConnectWithoutUsageSummariesInput = {
@@ -1675,6 +1844,7 @@ export type SubscriptionUpdateWithoutUsageSummariesInput = {
   invoices?: Prisma.InvoiceUpdateManyWithoutSubscriptionNestedInput
   usageRecords?: Prisma.UsageRecordUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionUncheckedUpdateWithoutUsageSummariesInput = {
@@ -1702,6 +1872,7 @@ export type SubscriptionUncheckedUpdateWithoutUsageSummariesInput = {
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutSubscriptionNestedInput
   usageRecords?: Prisma.UsageRecordUncheckedUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUncheckedUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUncheckedUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionCreateManyPlanInput = {
@@ -1752,6 +1923,7 @@ export type SubscriptionUpdateWithoutPlanInput = {
   usageRecords?: Prisma.UsageRecordUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionUncheckedUpdateWithoutPlanInput = {
@@ -1779,6 +1951,7 @@ export type SubscriptionUncheckedUpdateWithoutPlanInput = {
   usageRecords?: Prisma.UsageRecordUncheckedUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUncheckedUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUncheckedUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUncheckedUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionUncheckedUpdateManyWithoutPlanInput = {
@@ -1852,6 +2025,7 @@ export type SubscriptionUpdateWithoutPriceInput = {
   usageRecords?: Prisma.UsageRecordUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionUncheckedUpdateWithoutPriceInput = {
@@ -1879,6 +2053,7 @@ export type SubscriptionUncheckedUpdateWithoutPriceInput = {
   usageRecords?: Prisma.UsageRecordUncheckedUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUncheckedUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUncheckedUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUncheckedUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionUncheckedUpdateManyWithoutPriceInput = {
@@ -1952,6 +2127,7 @@ export type SubscriptionUpdateWithoutCustomerInput = {
   usageRecords?: Prisma.UsageRecordUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionUncheckedUpdateWithoutCustomerInput = {
@@ -1979,6 +2155,7 @@ export type SubscriptionUncheckedUpdateWithoutCustomerInput = {
   usageRecords?: Prisma.UsageRecordUncheckedUpdateManyWithoutSubscriptionNestedInput
   usageSummaries?: Prisma.UsageSummaryUncheckedUpdateManyWithoutSubscriptionNestedInput
   changes?: Prisma.SubscriptionChangeUncheckedUpdateManyWithoutSubscriptionNestedInput
+  payments?: Prisma.SubscriptionPaymentUncheckedUpdateManyWithoutSubscriptionNestedInput
 }
 
 export type SubscriptionUncheckedUpdateManyWithoutCustomerInput = {
@@ -2014,6 +2191,7 @@ export type SubscriptionCountOutputType = {
   usageRecords: number
   usageSummaries: number
   changes: number
+  payments: number
 }
 
 export type SubscriptionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2021,6 +2199,7 @@ export type SubscriptionCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   usageRecords?: boolean | SubscriptionCountOutputTypeCountUsageRecordsArgs
   usageSummaries?: boolean | SubscriptionCountOutputTypeCountUsageSummariesArgs
   changes?: boolean | SubscriptionCountOutputTypeCountChangesArgs
+  payments?: boolean | SubscriptionCountOutputTypeCountPaymentsArgs
 }
 
 /**
@@ -2061,6 +2240,13 @@ export type SubscriptionCountOutputTypeCountChangesArgs<ExtArgs extends runtime.
   where?: Prisma.SubscriptionChangeWhereInput
 }
 
+/**
+ * SubscriptionCountOutputType without action
+ */
+export type SubscriptionCountOutputTypeCountPaymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SubscriptionPaymentWhereInput
+}
+
 
 export type SubscriptionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2091,6 +2277,7 @@ export type SubscriptionSelect<ExtArgs extends runtime.Types.Extensions.Internal
   usageRecords?: boolean | Prisma.Subscription$usageRecordsArgs<ExtArgs>
   usageSummaries?: boolean | Prisma.Subscription$usageSummariesArgs<ExtArgs>
   changes?: boolean | Prisma.Subscription$changesArgs<ExtArgs>
+  payments?: boolean | Prisma.Subscription$paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.SubscriptionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["subscription"]>
 
@@ -2181,6 +2368,7 @@ export type SubscriptionInclude<ExtArgs extends runtime.Types.Extensions.Interna
   usageRecords?: boolean | Prisma.Subscription$usageRecordsArgs<ExtArgs>
   usageSummaries?: boolean | Prisma.Subscription$usageSummariesArgs<ExtArgs>
   changes?: boolean | Prisma.Subscription$changesArgs<ExtArgs>
+  payments?: boolean | Prisma.Subscription$paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.SubscriptionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SubscriptionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2204,6 +2392,7 @@ export type $SubscriptionPayload<ExtArgs extends runtime.Types.Extensions.Intern
     usageRecords: Prisma.$UsageRecordPayload<ExtArgs>[]
     usageSummaries: Prisma.$UsageSummaryPayload<ExtArgs>[]
     changes: Prisma.$SubscriptionChangePayload<ExtArgs>[]
+    payments: Prisma.$SubscriptionPaymentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2628,6 +2817,7 @@ export interface Prisma__SubscriptionClient<T, Null = never, ExtArgs extends run
   usageRecords<T extends Prisma.Subscription$usageRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Subscription$usageRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UsageRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   usageSummaries<T extends Prisma.Subscription$usageSummariesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Subscription$usageSummariesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UsageSummaryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   changes<T extends Prisma.Subscription$changesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Subscription$changesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubscriptionChangePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  payments<T extends Prisma.Subscription$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Subscription$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubscriptionPaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3172,6 +3362,30 @@ export type Subscription$changesArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.SubscriptionChangeScalarFieldEnum | Prisma.SubscriptionChangeScalarFieldEnum[]
+}
+
+/**
+ * Subscription.payments
+ */
+export type Subscription$paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SubscriptionPayment
+   */
+  select?: Prisma.SubscriptionPaymentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SubscriptionPayment
+   */
+  omit?: Prisma.SubscriptionPaymentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SubscriptionPaymentInclude<ExtArgs> | null
+  where?: Prisma.SubscriptionPaymentWhereInput
+  orderBy?: Prisma.SubscriptionPaymentOrderByWithRelationInput | Prisma.SubscriptionPaymentOrderByWithRelationInput[]
+  cursor?: Prisma.SubscriptionPaymentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SubscriptionPaymentScalarFieldEnum | Prisma.SubscriptionPaymentScalarFieldEnum[]
 }
 
 /**
