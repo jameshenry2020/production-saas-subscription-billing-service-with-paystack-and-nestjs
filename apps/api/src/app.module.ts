@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigifyModule } from '@itgorillaz/configify';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './infrastructure/database/prisma.module';
 import { InfrastructrueModule } from './infrastructure/infrastructure.module';
 import { BillingModule } from './modules/billing/billing.module';
@@ -10,9 +11,11 @@ import { LocalModule } from './modules/local.module';
   imports: [
     PrismaModule,
     ConfigifyModule.forRootAsync(),
+    ScheduleModule.forRoot(),
     InfrastructrueModule,
     LocalModule
   ],
 
 })
 export class AppModule { }
+

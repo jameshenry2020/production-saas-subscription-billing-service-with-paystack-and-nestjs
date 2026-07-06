@@ -86,3 +86,20 @@ export class AdminConfiguration {
         this.registrationSecret = config.registrationSecret;
     }
 }
+
+@Configuration()
+@RequiredArgsConstructor()
+export class RedisConfiguration {
+    @Value("REDIS_HOST")
+    @IsString()
+    host: string;
+
+    @Value("REDIS_PORT")
+    @IsString()
+    port: string;
+
+    constructor(config: Required<RedisConfiguration>) {
+        this.host = config.host || "localhost";
+        this.port = config.port || "6379";
+    }
+}

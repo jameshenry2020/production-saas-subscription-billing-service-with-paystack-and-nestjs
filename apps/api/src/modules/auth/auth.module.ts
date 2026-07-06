@@ -1,14 +1,18 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { UserModule } from "../users/user.module";
+import { SubscriptionModule } from "../billing/subscription/subscription.module";
 import { JwtConfiguration } from "../../config/app-config";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
+import { SystemSettingModule } from "../../infrastructure/settings/system-setting.module";
 
 @Module({
   imports: [
     UserModule,
+    forwardRef(() => SubscriptionModule),
+    SystemSettingModule,
     JwtModule.registerAsync({
       inject: [JwtConfiguration],
       useFactory: (jwtConfig: JwtConfiguration) => ({

@@ -1,7 +1,9 @@
-import { Injectable, BadRequestException, UnauthorizedException } from "@nestjs/common";
+import { Injectable, BadRequestException, UnauthorizedException, Inject, forwardRef, Logger } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import * as argon2 from "argon2";
 import { UserService } from "../users/user.service";
+import { SubscriptionService } from "../billing/subscription/subscription.service";
+import { SystemSettingService } from "../../infrastructure/settings/system-setting.service";
 import { SignupDto } from "./dto/signup.dto";
 import { LoginDto } from "./dto/login.dto";
 import { SignupAdminDto } from "./dto/signup-admin.dto";
@@ -9,11 +11,16 @@ import { AdminConfiguration } from "../../config/app-config";
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    private readonly adminConfig: AdminConfiguration
-  ) {}
+    private readonly adminConfig: AdminConfiguration,
+    private readonly systemSetting: SystemSettingService,
+    @Inject(forwardRef(() => SubscriptionService))
+    private readonly subscriptionService: SubscriptionService
+  ) { }
 
   async signup(dto: SignupDto) {
     // Check if user already exists
@@ -27,6 +34,28 @@ export class AuthService {
 
     // Create the user
     const user = await this.userService.createUser(dto.email, passwordHash, dto.name);
+
+    // ── Feature Flag: FREE_PLAN_AUTO_SUBSCRIBE ──────────────────────────────
+    // When ON  (default): auto-subscribe the new user to the Free plan.
+    // When OFF (trial mode): create a Customer profile only — no subscription.
+    //   The trial is offered on first checkout when FREE_PLAN_AUTO_SUBSCRIBE is OFF.
+    const freePlanEnabled = await this.systemSetting.getFlag("FREE_PLAN_AUTO_SUBSCRIBE", true);
+
+    if (freePlanEnabled) {
+      try {
+        await this.subscriptionService.createCustomerAndSubscribeToFree(user.id, user.email, user.name);
+      } catch (err: any) {
+        // Non-blocking: user is registered regardless. Sync happens on first billing dashboard visit.
+        this.logger.error(`No free subscription created for user ${user.id}: ${err.message}`);
+      }
+    } else {
+      // Trial mode: create Paystack customer and local Customer record only
+      try {
+        await this.subscriptionService.createCustomerOnly(user.id, user.email, user.name);
+      } catch (err: any) {
+        this.logger.error(`Failed to create customer profile for user ${user.id}: ${err.message}`);
+      }
+    }
 
     // Generate JWT access token
     const accessToken = this.generateToken({
