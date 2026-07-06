@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { PaystackService } from "./paystack/paystack.service";
+import { SystemSettingService } from "../../infrastructure/settings/system-setting.service";
 import { CreatePlanDto } from "./dto/create-plan.dto";
 import { UpdatePlanDto } from "./dto/update-plan.dto";
 import { PlanResponseDto } from "./dto/plan-response.dto";
@@ -13,8 +14,9 @@ export class BillingService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly paystack: PaystackService
-  ) {}
+    private readonly paystack: PaystackService,
+    private readonly systemSetting: SystemSettingService
+  ) { }
 
   async getPlans(): Promise<PlanResponseDto[]> {
     const plans = await this.prisma.plan.findMany({
@@ -465,7 +467,7 @@ export class BillingService {
 
       // Identify omitted prices to deactivate
       const inputIds = dto.prices.map(p => p.id).filter(Boolean);
-      const inputIntervalCurrencyKeys = dto.prices.map(p => 
+      const inputIntervalCurrencyKeys = dto.prices.map(p =>
         p.interval ? `${p.interval}_${(p.currency ?? "NGN").toUpperCase()}` : null
       ).filter(Boolean);
 
@@ -578,6 +580,108 @@ export class BillingService {
           }
         }
       });
+    });
+
+    return BillingMapper.toPlanResponse(updatedPlan);
+  }
+
+  // ── Admin: System Settings ───────────────────────────────────────────────────
+
+
+  async setFreePlanFlag(enabled: boolean, adminUserId: string): Promise<{ key: string; value: string }> {
+    await this.systemSetting.set("FREE_PLAN_AUTO_SUBSCRIBE", String(enabled), adminUserId);
+
+    // Toggle the visibility of the Free Plan to match the auto-subscribe state
+    await this.prisma.plan.updateMany({
+      where: { slug: "free" },
+      data: { isPublic: enabled },
+    });
+
+    this.logger.log(`FREE_PLAN_AUTO_SUBSCRIBE set to ${enabled} by admin ${adminUserId}. Updated Free Plan isPublic to ${enabled}.`);
+    return { key: "FREE_PLAN_AUTO_SUBSCRIBE", value: String(enabled) };
+  }
+
+  /**
+   * Admin: Retrieve all system settings for the admin overview dashboard.
+   */
+  async getAllSettings() {
+    return this.systemSetting.getAll();
+  }
+
+  // ── Admin: Trial Period Management on Prices ─────────────────────────────────
+
+  /**
+   * Admin: Add or update a free trial period on a specific Price.
+   * Existing active TRIALING subscriptions on this price are NOT affected.
+   * Only new checkouts will see the trial.
+   */
+  async setTrialOnPrice(priceId: string, trialDays: number): Promise<PlanResponseDto> {
+    const price = await this.prisma.price.findUnique({
+      where: { id: priceId },
+      include: {
+        plan: {
+          include: {
+            prices: true,
+            planFeatures: { include: { feature: true } },
+          },
+        },
+      },
+    });
+
+    if (!price) {
+      throw new NotFoundException(`Price with ID "${priceId}" not found.`);
+    }
+
+    if (!price.isActive) {
+      throw new BadRequestException(`Price "${priceId}" is not active and cannot be modified.`);
+    }
+
+    await this.prisma.price.update({
+      where: { id: priceId },
+      data: { trialPeriodDays: trialDays },
+    });
+
+    this.logger.log(`Set ${trialDays}-day trial on price ${priceId} (plan: ${price.plan.name})`);
+
+    // Return the updated plan
+    const updatedPlan = await this.prisma.plan.findUnique({
+      where: { id: price.planId },
+      include: {
+        prices: true,
+        planFeatures: { include: { feature: true } },
+      },
+    });
+
+    return BillingMapper.toPlanResponse(updatedPlan);
+  }
+
+  /**
+   * Admin: Remove the free trial period from a specific Price.
+   * Sets trialPeriodDays to null. Existing TRIALING subscriptions are NOT affected.
+   */
+  async removeTrialOnPrice(priceId: string): Promise<PlanResponseDto> {
+    const price = await this.prisma.price.findUnique({
+      where: { id: priceId },
+      include: { plan: true },
+    });
+
+    if (!price) {
+      throw new NotFoundException(`Price with ID "${priceId}" not found.`);
+    }
+
+    await this.prisma.price.update({
+      where: { id: priceId },
+      data: { trialPeriodDays: null },
+    });
+
+    this.logger.log(`Removed trial from price ${priceId} (plan: ${price.plan.name})`);
+
+    const updatedPlan = await this.prisma.plan.findUnique({
+      where: { id: price.planId },
+      include: {
+        prices: true,
+        planFeatures: { include: { feature: true } },
+      },
     });
 
     return BillingMapper.toPlanResponse(updatedPlan);
