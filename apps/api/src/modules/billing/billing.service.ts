@@ -114,50 +114,13 @@ export class BillingService {
 
     if (dto.prices) {
       for (const priceConfig of dto.prices) {
-        let paystackPlanCode: string | null = null;
-
-        if (priceConfig.amount > 0) {
-          const intervalLabel = priceConfig.interval === BillingInterval.ANNUALLY ? "Annually" : "Monthly";
-          const paystackPlanName = `${product.name} - ${dto.name} (${intervalLabel})`;
-
-          try {
-            // Check if there is an existing Paystack plan with the exact same configuration first
-            const paystackPlans = await this.paystack.listPlans();
-            const matchedPlan = paystackPlans.find(
-              (p) =>
-                p.name.toLowerCase() === paystackPlanName.toLowerCase() &&
-                p.interval.toLowerCase() === (priceConfig.interval === BillingInterval.ANNUALLY ? "annually" : "monthly") &&
-                p.amount === priceConfig.amount &&
-                p.currency.toUpperCase() === priceConfig.currency.toUpperCase()
-            );
-
-            if (matchedPlan) {
-              paystackPlanCode = matchedPlan.plan_code;
-              this.logger.log(`Matched existing Paystack plan for: ${paystackPlanName} -> ${paystackPlanCode}`);
-            } else {
-              this.logger.log(`Creating plan on Paystack: ${paystackPlanName}`);
-              const createdPlan = await this.paystack.createPlan({
-                name: paystackPlanName,
-                amount: priceConfig.amount,
-                interval: priceConfig.interval === BillingInterval.ANNUALLY ? "annually" : "monthly",
-                currency: priceConfig.currency,
-                description: dto.description,
-              });
-              paystackPlanCode = createdPlan.plan_code;
-            }
-          } catch (error) {
-            this.logger.error(`Failed to sync plan with Paystack. Rollback.`, error);
-            throw new BadRequestException(`Paystack plan sync failed: ${error.message}`);
-          }
-        }
-
         pricesWithPaystackCodes.push({
           interval: priceConfig.interval,
           intervalCount: priceConfig.intervalCount ?? 1,
           currency: priceConfig.currency ?? "NGN",
           amount: priceConfig.amount,
           trialPeriodDays: priceConfig.trialPeriodDays,
-          paystackPlanCode,
+          paystackPlanCode: null,
         });
       }
     }
@@ -307,33 +270,6 @@ export class BillingService {
             const newTrial = priceConfig.trialPeriodDays !== undefined ? priceConfig.trialPeriodDays : dbPrice.trialPeriodDays;
 
             let paystackPlanCode: string | null = null;
-            if (newAmount > 0) {
-              const intervalLabel = newInterval === BillingInterval.ANNUALLY ? "Annually" : "Monthly";
-              const paystackPlanName = `${plan.product.name} - ${dto.name ?? plan.name} (${intervalLabel})`;
-
-              // Sync with Paystack
-              const paystackPlans = await this.paystack.listPlans();
-              const matchedPlan = paystackPlans.find(
-                p =>
-                  p.name.toLowerCase() === paystackPlanName.toLowerCase() &&
-                  p.interval.toLowerCase() === (newInterval === BillingInterval.ANNUALLY ? "annually" : "monthly") &&
-                  p.amount === newAmount &&
-                  p.currency.toUpperCase() === newCurrency.toUpperCase()
-              );
-
-              if (matchedPlan) {
-                paystackPlanCode = matchedPlan.plan_code;
-              } else {
-                const createdPlan = await this.paystack.createPlan({
-                  name: paystackPlanName,
-                  amount: newAmount,
-                  interval: newInterval === BillingInterval.ANNUALLY ? "annually" : "monthly",
-                  currency: newCurrency,
-                  description: dto.description ?? plan.description,
-                });
-                paystackPlanCode = createdPlan.plan_code;
-              }
-            }
 
             pricesToCreate.push({
               interval: newInterval,
@@ -375,32 +311,6 @@ export class BillingService {
               priceIdsToDeactivate.push(existingMatch.id);
 
               let paystackPlanCode: string | null = null;
-              if (newAmount > 0) {
-                const intervalLabel = interval === BillingInterval.ANNUALLY ? "Annually" : "Monthly";
-                const paystackPlanName = `${plan.product.name} - ${dto.name ?? plan.name} (${intervalLabel})`;
-
-                const paystackPlans = await this.paystack.listPlans();
-                const matchedPlan = paystackPlans.find(
-                  p =>
-                    p.name.toLowerCase() === paystackPlanName.toLowerCase() &&
-                    p.interval.toLowerCase() === (interval === BillingInterval.ANNUALLY ? "annually" : "monthly") &&
-                    p.amount === newAmount &&
-                    p.currency.toUpperCase() === currency.toUpperCase()
-                );
-
-                if (matchedPlan) {
-                  paystackPlanCode = matchedPlan.plan_code;
-                } else {
-                  const createdPlan = await this.paystack.createPlan({
-                    name: paystackPlanName,
-                    amount: newAmount,
-                    interval: interval === BillingInterval.ANNUALLY ? "annually" : "monthly",
-                    currency,
-                    description: dto.description ?? plan.description,
-                  });
-                  paystackPlanCode = createdPlan.plan_code;
-                }
-              }
 
               pricesToCreate.push({
                 interval,
@@ -425,32 +335,6 @@ export class BillingService {
           } else {
             // Fully new Price config
             let paystackPlanCode: string | null = null;
-            if (newAmount > 0) {
-              const intervalLabel = interval === BillingInterval.ANNUALLY ? "Annually" : "Monthly";
-              const paystackPlanName = `${plan.product.name} - ${dto.name ?? plan.name} (${intervalLabel})`;
-
-              const paystackPlans = await this.paystack.listPlans();
-              const matchedPlan = paystackPlans.find(
-                p =>
-                  p.name.toLowerCase() === paystackPlanName.toLowerCase() &&
-                  p.interval.toLowerCase() === (interval === BillingInterval.ANNUALLY ? "annually" : "monthly") &&
-                  p.amount === newAmount &&
-                  p.currency.toUpperCase() === currency.toUpperCase()
-              );
-
-              if (matchedPlan) {
-                paystackPlanCode = matchedPlan.plan_code;
-              } else {
-                const createdPlan = await this.paystack.createPlan({
-                  name: paystackPlanName,
-                  amount: newAmount,
-                  interval: interval === BillingInterval.ANNUALLY ? "annually" : "monthly",
-                  currency,
-                  description: dto.description ?? plan.description,
-                });
-                paystackPlanCode = createdPlan.plan_code;
-              }
-            }
 
             pricesToCreate.push({
               interval,

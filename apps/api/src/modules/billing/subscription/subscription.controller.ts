@@ -3,6 +3,7 @@ import { SubscriptionService } from "./subscription.service";
 import { CheckoutSubscriptionDto } from "../dto/checkout-subscription.dto";
 import { SubscriptionResponseDto } from "../dto/subscription-response.dto";
 import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
+import { SubscriptionGuard } from "../../../common/guards/subscription.guard";
 import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import { ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
@@ -51,7 +52,7 @@ export class SubscriptionController {
   }
 
   @Post("cancel")
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, SubscriptionGuard)
   @ApiCookieAuth("session")
   @ApiOperation({
     summary: "Cancel subscription at period end",
@@ -60,6 +61,19 @@ export class SubscriptionController {
   @ApiResponse({ status: 200, type: SubscriptionResponseDto, description: "Subscription set to cancel." })
   async cancel(@CurrentUser() user: any): Promise<SubscriptionResponseDto> {
     return this.subscriptionService.cancelSubscription(user.id);
+  }
+
+  @Post("reactivate")
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth("session")
+  @ApiOperation({
+    summary: "Reactivate subscription",
+    description: "Reactivates a subscription scheduled for cancellation, or attempts to reactivate a fully canceled subscription by charging the saved default payment method.",
+  })
+  @ApiResponse({ status: 200, type: SubscriptionResponseDto, description: "Subscription successfully reactivated." })
+  @ApiResponse({ status: 400, description: "Validation failure or card charge failed." })
+  async reactivate(@CurrentUser() user: any): Promise<SubscriptionResponseDto> {
+    return this.subscriptionService.reactivateSubscription(user.id);
   }
 
   @Post("change-card-link")

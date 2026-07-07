@@ -24,6 +24,7 @@ export class SubscriptionGuard implements CanActivate {
 
     const subscription = await this.prisma.subscription.findFirst({
       where: { customerId: customer.id },
+      orderBy: { createdAt: "desc" },
     });
 
     if (!subscription) {

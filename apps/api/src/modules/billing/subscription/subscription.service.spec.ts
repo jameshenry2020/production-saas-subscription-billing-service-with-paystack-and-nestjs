@@ -33,6 +33,16 @@ describe("SubscriptionService (Unit)", () => {
     },
     transaction: {
       create: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+    },
+    invoice: {
+      create: jest.fn(),
+      update: jest.fn(),
+      findUnique: jest.fn(),
+    },
+    invoiceItem: {
+      create: jest.fn(),
     },
     $transaction: jest.fn((cb) => cb(mockPrisma)),
   };
@@ -43,6 +53,7 @@ describe("SubscriptionService (Unit)", () => {
     fetchSubscription: jest.fn(),
     initializeTransaction: jest.fn(),
     refundTransaction: jest.fn(),
+    chargeAuthorization: jest.fn(),
   };
 
   const mockIdempotency = {};
@@ -222,6 +233,136 @@ describe("SubscriptionService (Unit)", () => {
         where: { customerId: "cust-123", isDefault: true },
       });
       expect(result.id).toBe("pm-123");
+    });
+  });
+
+  describe("reactivateSubscription", () => {
+    it("should throw NotFoundException if customer profile is not found", async () => {
+      mockPrisma.customer.findUnique.mockResolvedValue(null);
+
+      await expect(service.reactivateSubscription("user-123")).rejects.toThrow(
+        NotFoundException
+      );
+    });
+
+    it("should throw NotFoundException if no subscription is found", async () => {
+      mockPrisma.customer.findUnique.mockResolvedValue({ id: "cust-123" });
+      mockPrisma.subscription.findFirst.mockResolvedValue(null);
+
+      await expect(service.reactivateSubscription("user-123")).rejects.toThrow(
+        NotFoundException
+      );
+    });
+
+    it("should reactivate a scheduled-to-cancel active subscription locally", async () => {
+      mockPrisma.customer.findUnique.mockResolvedValue({ id: "cust-123" });
+      mockPrisma.subscription.findFirst.mockResolvedValue({
+        id: "sub-123",
+        status: SubscriptionStatus.ACTIVE,
+        cancelAtPeriodEnd: true,
+        planId: "plan-pro",
+        priceId: "price-monthly",
+        plan: { name: "Pro Plan", slug: "pro" },
+        price: { interval: "MONTHLY", amount: 5000, currency: "NGN" },
+      });
+
+      mockPrisma.subscription.update.mockResolvedValue({
+        id: "sub-123",
+        status: SubscriptionStatus.ACTIVE,
+        cancelAtPeriodEnd: false,
+        plan: { name: "Pro Plan", slug: "pro" },
+        price: { interval: "MONTHLY", amount: 5000, currency: "NGN" },
+      });
+
+      const result = await service.reactivateSubscription("user-123");
+
+      expect(prisma.subscription.update).toHaveBeenCalledWith({
+        where: { id: "sub-123" },
+        data: {
+          cancelAtPeriodEnd: false,
+          canceledAt: null,
+          cancelAt: null,
+        },
+        include: { plan: true, price: true },
+      });
+      expect(result.cancelAtPeriodEnd).toBe(false);
+      expect(result.status).toBe("ACTIVE");
+    });
+
+    it("should throw BadRequestException if subscription is already active and not scheduled for cancel", async () => {
+      mockPrisma.customer.findUnique.mockResolvedValue({ id: "cust-123" });
+      mockPrisma.subscription.findFirst.mockResolvedValue({
+        id: "sub-123",
+        status: SubscriptionStatus.ACTIVE,
+        cancelAtPeriodEnd: false,
+        plan: { name: "Pro Plan", slug: "pro" },
+        price: { interval: "MONTHLY", amount: 5000, currency: "NGN" },
+      });
+
+      await expect(service.reactivateSubscription("user-123")).rejects.toThrow(
+        BadRequestException
+      );
+    });
+
+    it("should charge card and reactivate a fully CANCELED subscription", async () => {
+      mockPrisma.customer.findUnique.mockResolvedValue({ id: "cust-123", user: { email: "user@example.com" } });
+      mockPrisma.subscription.findFirst.mockResolvedValue({
+        id: "sub-123",
+        status: SubscriptionStatus.CANCELED,
+        planId: "plan-pro",
+        priceId: "price-monthly",
+        plan: { name: "Pro Plan", slug: "pro" },
+        price: { interval: "MONTHLY", amount: 5000, currency: "NGN" },
+      });
+
+      mockPrisma.paymentMethod.findFirst.mockResolvedValue({
+        id: "pm-123",
+        paystackAuthorizationCode: "AUTH_reusable123",
+      });
+
+      mockPrisma.invoice.create.mockResolvedValue({ id: "inv-123", periodStart: new Date(), periodEnd: new Date() });
+      mockPrisma.transaction.create.mockResolvedValue({ id: "tx-123" });
+
+      mockPaystack.chargeAuthorization.mockResolvedValue({
+        status: "success",
+        channel: "card",
+        paid_at: new Date().toISOString(),
+      });
+
+      mockPrisma.subscription.update.mockResolvedValue({
+        id: "sub-123",
+        status: SubscriptionStatus.ACTIVE,
+        cancelAtPeriodEnd: false,
+        plan: { name: "Pro Plan", slug: "pro" },
+        price: { interval: "MONTHLY", amount: 5000, currency: "NGN" },
+      });
+
+      const result = await service.reactivateSubscription("user-123");
+
+      expect(paystack.chargeAuthorization).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: "user@example.com",
+          amount: 5000,
+          authorizationCode: "AUTH_reusable123",
+        })
+      );
+      expect(result.status).toBe("ACTIVE");
+    });
+
+    it("should throw BadRequestException if CANCELED subscription has no default payment method", async () => {
+      mockPrisma.customer.findUnique.mockResolvedValue({ id: "cust-123", user: { email: "user@example.com" } });
+      mockPrisma.subscription.findFirst.mockResolvedValue({
+        id: "sub-123",
+        status: SubscriptionStatus.CANCELED,
+        plan: { name: "Pro Plan", slug: "pro" },
+        price: { interval: "MONTHLY", amount: 5000, currency: "NGN" },
+      });
+
+      mockPrisma.paymentMethod.findFirst.mockResolvedValue(null);
+
+      await expect(service.reactivateSubscription("user-123")).rejects.toThrow(
+        BadRequestException
+      );
     });
   });
 });

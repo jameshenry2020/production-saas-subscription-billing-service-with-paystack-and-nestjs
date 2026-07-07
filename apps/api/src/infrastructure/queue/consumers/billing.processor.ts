@@ -360,7 +360,22 @@ export class BillingProcessor extends WorkerHost {
           return;
         }
 
-        const paystackRef = `sub_renew_${crypto.randomUUID().substring(0, 12)}`;
+        const paystackRef = `renewal_${invoice.id}`;
+
+        const existingTx = await tx.transaction.findUnique({
+          where: { paystackReference: paystackRef },
+        });
+
+        if (existingTx) {
+          if (existingTx.status === "SUCCESS") {
+            this.logger.log(`Transaction ${paystackRef} already succeeded. Skipping charge.`);
+            return;
+          }
+          if (existingTx.status === "PENDING") {
+            this.logger.warn(`Transaction ${paystackRef} is already PENDING. Skipping charge to avoid duplicate attempt.`);
+            return;
+          }
+        }
 
         // Record a pending transaction record linked to this invoice
         await tx.transaction.create({
@@ -654,7 +669,22 @@ export class BillingProcessor extends WorkerHost {
       return;
     }
 
-    const paystackRef = `dunning_retry_${retry.id}_${attemptNumber}_${Date.now()}`;
+    const paystackRef = `dunning_retry_${retry.id}`;
+
+    const existingTx = await this.prisma.transaction.findUnique({
+      where: { paystackReference: paystackRef },
+    });
+
+    if (existingTx) {
+      if (existingTx.status === "SUCCESS") {
+        this.logger.log(`Dunning transaction ${paystackRef} already succeeded. Skipping charge.`);
+        return;
+      }
+      if (existingTx.status === "PENDING") {
+        this.logger.warn(`Dunning transaction ${paystackRef} is already PENDING. Skipping charge to avoid duplicate attempt.`);
+        return;
+      }
+    }
 
     // Create a transaction record
     await this.prisma.transaction.create({

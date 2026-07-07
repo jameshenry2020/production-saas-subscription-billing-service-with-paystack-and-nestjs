@@ -3,6 +3,7 @@ import { SubscriptionController } from "./subscription.controller";
 import { SubscriptionService } from "./subscription.service";
 import { JwtService } from "@nestjs/jwt";
 import { UserService } from "../../users/user.service";
+import { PrismaService } from "../../../infrastructure/database/prisma.service";
 
 describe("SubscriptionController (Unit)", () => {
   let controller: SubscriptionController;
@@ -12,6 +13,7 @@ describe("SubscriptionController (Unit)", () => {
     cancelSubscription: jest.fn(),
     generateChangeCardLink: jest.fn(),
     syncSubscriptionCard: jest.fn(),
+    reactivateSubscription: jest.fn(),
   };
 
   const mockJwtService = {};
@@ -24,6 +26,7 @@ describe("SubscriptionController (Unit)", () => {
         { provide: SubscriptionService, useValue: mockSubscriptionService },
         { provide: JwtService, useValue: mockJwtService },
         { provide: UserService, useValue: mockUserService },
+        { provide: PrismaService, useValue: {} },
       ],
     }).compile();
 
@@ -42,6 +45,18 @@ describe("SubscriptionController (Unit)", () => {
 
       expect(service.cancelSubscription).toHaveBeenCalledWith("user-123");
       expect(result).toEqual({ id: "sub-123" });
+    });
+  });
+
+  describe("reactivate", () => {
+    it("should call subscriptionService.reactivateSubscription with user.id", async () => {
+      const user = { id: "user-123" };
+      mockSubscriptionService.reactivateSubscription.mockResolvedValue({ id: "sub-123", status: "ACTIVE" });
+
+      const result = await controller.reactivate(user);
+
+      expect(service.reactivateSubscription).toHaveBeenCalledWith("user-123");
+      expect(result).toEqual({ id: "sub-123", status: "ACTIVE" });
     });
   });
 

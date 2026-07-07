@@ -821,158 +821,7 @@ export class SubscriptionService {
         return this.handleDunningRetrySuccess(reference, paystackData, chargeMetadata);
       }
 
-      const subCode = paystackData.subscription?.subscription_code;
-      if (!subCode) {
-        throw new NotFoundException(`No pending payment, renewal metadata, or subscription found for reference: ${reference}`);
-      }
-
-      this.logger.log(`Handling legacy renewal/scheduled plan transition for Paystack code: ${subCode}`);
-      const currentSub = await this.prisma.subscription.findUnique({
-        where: { paystackSubscriptionCode: subCode },
-        include: { plan: true, price: true },
-      });
-
-      if (!currentSub) {
-        throw new NotFoundException(`Local subscription not found for Paystack code: ${subCode}`);
-      }
-
-      const planCode = paystackData.plan?.plan_code;
-      const targetPrice = planCode
-        ? await this.prisma.price.findUnique({
-          where: { paystackPlanCode: planCode },
-          include: { plan: true },
-        })
-        : null;
-
-      const activePrice = targetPrice || currentSub.price;
-      const activePlan = targetPrice?.plan || currentSub.plan;
-
-      return this.prisma.$transaction(async (tx) => {
-        // Create Transaction & Invoice record if they don't already exist for this reference
-        const existingTx = await tx.transaction.findUnique({
-          where: { paystackReference: reference },
-        });
-
-        const paidDate = paystackData.paid_at ? new Date(paystackData.paid_at) : new Date();
-
-        if (!existingTx) {
-          // Check if there is an existing OPEN or DRAFT invoice for this subscription renewal cycle
-          let invoice = await tx.invoice.findFirst({
-            where: {
-              subscriptionId: currentSub.id,
-              status: { in: ["OPEN", "DRAFT"] },
-            },
-            orderBy: { createdAt: "desc" },
-          });
-
-          if (invoice) {
-            // Update the existing invoice to PAID
-            invoice = await tx.invoice.update({
-              where: { id: invoice.id },
-              data: {
-                status: "PAID",
-                amountPaid: paystackData.amount,
-                amountDue: 0,
-                paidAt: paidDate,
-                paystackReference: reference,
-              },
-            });
-          } else {
-            // Fallback: create a new invoice if not pre-created by webhook
-            const invoiceNumber = `INV-RENEW-${Date.now()}`;
-            invoice = await tx.invoice.create({
-              data: {
-                customerId: currentSub.customerId,
-                subscriptionId: currentSub.id,
-                invoiceNumber,
-                status: "PAID",
-                currency: activePrice.currency,
-                subtotal: paystackData.amount,
-                total: paystackData.amount,
-                amountPaid: paystackData.amount,
-                amountDue: 0,
-                paidAt: paidDate,
-                paystackReference: reference,
-              },
-            });
-
-            await tx.invoiceItem.create({
-              data: {
-                invoiceId: invoice.id,
-                type: "SUBSCRIPTION",
-                description: `Renewal charge for ${activePlan.name} (${activePrice.interval})`,
-                quantity: 1,
-                unitAmount: paystackData.amount,
-                amount: paystackData.amount,
-                periodStart: paidDate,
-                periodEnd: computePeriodEnd(activePrice.interval, paidDate),
-              },
-            });
-          }
-
-          // Record transaction record linked to this invoice
-          await tx.transaction.create({
-            data: {
-              customerId: currentSub.customerId,
-              invoiceId: invoice.id,
-              status: "SUCCESS",
-              amount: paystackData.amount,
-              paystackReference: reference,
-              channel: paystackData.channel || null,
-              paidAt: paidDate,
-            },
-          });
-        }
-
-        const newPeriodEnd = computePeriodEnd(activePrice.interval, paidDate);
-
-        // Update active subscription plan and dates
-        const sub = await tx.subscription.update({
-          where: { id: currentSub.id },
-          data: {
-            planId: activePlan.id,
-            priceId: activePrice.id,
-            status: SubscriptionStatus.ACTIVE,
-            currentPeriodStart: paidDate,
-            currentPeriodEnd: newPeriodEnd,
-          },
-          include: { plan: true, price: true },
-        });
-
-        // Audit the change if the plan/price configuration updated OR if they were trialing and are now active (trial conversion)
-        const wasTrialing = currentSub.status === SubscriptionStatus.TRIALING;
-        if (currentSub.priceId !== activePrice.id || wasTrialing) {
-          let changeType: SubscriptionChangeType = SubscriptionChangeType.PLAN_CHANGE;
-          let reason = `Scheduled plan switch successfully executed on renewal reference (${reference}).`;
-
-          if (wasTrialing) {
-            changeType = SubscriptionChangeType.PLAN_CHANGE;
-            reason = `Free trial converted to active subscription on billing date (Ref: ${reference}).`;
-          } else if (activePlan.sortOrder > currentSub.plan.sortOrder) {
-            changeType = SubscriptionChangeType.UPGRADE;
-          } else if (activePlan.sortOrder < currentSub.plan.sortOrder) {
-            changeType = SubscriptionChangeType.DOWNGRADE;
-          }
-
-          await tx.subscriptionChange.create({
-            data: {
-              subscriptionId: currentSub.id,
-              changeType,
-              fromPlanId: currentSub.planId,
-              toPlanId: activePlan.id,
-              fromPriceId: currentSub.priceId,
-              toPriceId: activePrice.id,
-              fromPaystackSubCode: currentSub.paystackSubscriptionCode,
-              toPaystackSubCode: currentSub.paystackSubscriptionCode,
-              prorationAmount: 0,
-              reason,
-              initiatedBy: "system",
-            },
-          });
-        }
-
-        return sub;
-      });
+      throw new NotFoundException(`No pending payment or custom renewal metadata found for reference: ${reference}`);
     }
 
     // 2. Handle standard checkout redirect confirmation
@@ -1028,9 +877,9 @@ export class SubscriptionService {
       }
     }
 
-    // Resolve paystack subscription details if provided
-    let paystackSubCode = paystackData.subscription?.subscription_code || currentSub.paystackSubscriptionCode;
-    let paystackEmailToken = paystackData.subscription?.email_token || currentSub.paystackEmailToken;
+    // Resolved paystack subscription details are now obsolete (backend-managed)
+    let paystackSubCode = null;
+    let paystackEmailToken = null;
 
     const paidDate = paystackData.paid_at ? new Date(paystackData.paid_at) : new Date();
     const newPeriodEnd = computePeriodEnd(targetPrice.interval, paidDate);
@@ -1105,6 +954,8 @@ export class SubscriptionService {
           status: SubscriptionStatus.ACTIVE,
           currentPeriodStart: paidDate,
           currentPeriodEnd: newPeriodEnd,
+          paystackSubscriptionCode: null,
+          paystackEmailToken: null,
         },
         include: { plan: true, price: true },
       });
@@ -1564,6 +1415,226 @@ export class SubscriptionService {
 
     return SubscriptionMapper.toSubscriptionResponse(updatedSub);
   }
+
+  /**
+   * Reactivates a canceled subscription or one scheduled for cancellation.
+   */
+  async reactivateSubscription(userId: string): Promise<SubscriptionResponseDto> {
+    this.logger.log(`Initiating subscription reactivation for user ${userId}`);
+
+    const customer = await this.prisma.customer.findUnique({
+      where: { userId },
+      include: { user: true },
+    });
+
+    if (!customer) {
+      throw new NotFoundException("Customer profile not found for this user.");
+    }
+
+    // Find the latest subscription
+    const sub = await this.prisma.subscription.findFirst({
+      where: { customerId: customer.id },
+      orderBy: { createdAt: "desc" },
+      include: { plan: true, price: true },
+    });
+
+    if (!sub) {
+      throw new NotFoundException("No subscription record found to reactivate.");
+    }
+
+    // ── Scenario A: Subscription is ACTIVE / TRIALING / PAST_DUE and scheduled for cancellation ──
+    if (
+      ([SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING, SubscriptionStatus.PAST_DUE] as SubscriptionStatus[]).includes(sub.status)
+    ) {
+      if (!sub.cancelAtPeriodEnd) {
+        throw new BadRequestException("Subscription is already active and not scheduled for cancellation.");
+      }
+
+      this.logger.log(`Reactivating scheduled-to-cancel subscription ${sub.id} locally`);
+
+      const updatedSub = await this.prisma.$transaction(async (tx) => {
+        const updated = await tx.subscription.update({
+          where: { id: sub.id },
+          data: {
+            cancelAtPeriodEnd: false,
+            canceledAt: null,
+            cancelAt: null,
+          },
+          include: { plan: true, price: true },
+        });
+
+        await tx.subscriptionChange.create({
+          data: {
+            subscriptionId: sub.id,
+            changeType: SubscriptionChangeType.REACTIVATION,
+            fromPlanId: sub.planId,
+            toPlanId: sub.planId,
+            fromPriceId: sub.priceId,
+            toPriceId: sub.priceId,
+            reason: "Customer reactivated subscription before period end.",
+            initiatedBy: "customer",
+            prorationAmount: 0,
+            effectiveAt: new Date(),
+          },
+        });
+
+        return updated;
+      });
+
+      return SubscriptionMapper.toSubscriptionResponse(updatedSub);
+    }
+
+    // ── Scenario B: Subscription is fully CANCELED ──
+    if (sub.status === SubscriptionStatus.CANCELED) {
+      this.logger.log(`Reactivating fully canceled subscription ${sub.id} by charging saved card`);
+
+      // Find customer default payment method card
+      const defaultPm = await this.prisma.paymentMethod.findFirst({
+        where: { customerId: customer.id, isDefault: true, isReusable: true },
+      });
+
+      if (!defaultPm) {
+        throw new BadRequestException(
+          "No default saved payment method found. Please proceed to checkout to reactivate."
+        );
+      }
+
+      // Calculate cost
+      const baseAmount = sub.price.amount;
+      const ref = `reactivate_${sub.id}_${crypto.randomUUID().substring(0, 8)}`;
+
+      // Use Prisma transaction to create invoice/payment and try charging
+      const updatedSub = await this.prisma.$transaction(async (tx) => {
+        // Create open invoice
+        const invoiceNumber = `INV-ACT-${Date.now()}`;
+        const invoice = await tx.invoice.create({
+          data: {
+            customerId: customer.id,
+            subscriptionId: sub.id,
+            invoiceNumber,
+            status: "OPEN",
+            currency: sub.price.currency,
+            subtotal: baseAmount,
+            total: baseAmount,
+            amountDue: baseAmount,
+            dueDate: new Date(),
+            periodStart: new Date(),
+            periodEnd: computePeriodEnd(sub.price.interval, new Date()),
+          },
+        });
+
+        // Add base plan item
+        await tx.invoiceItem.create({
+          data: {
+            invoiceId: invoice.id,
+            type: "SUBSCRIPTION",
+            description: `Subscription reactivation renewal for ${sub.plan.name} (${sub.price.interval})`,
+            quantity: 1,
+            unitAmount: baseAmount,
+            amount: baseAmount,
+            periodStart: invoice.periodStart,
+            periodEnd: invoice.periodEnd,
+          },
+        });
+
+        // Create transaction record
+        await tx.transaction.create({
+          data: {
+            customerId: customer.id,
+            invoiceId: invoice.id,
+            status: "PENDING",
+            amount: baseAmount,
+            paystackReference: ref,
+          },
+        });
+
+        // Call Paystack chargeAuthorization
+        try {
+          this.logger.log(`Charging authorization on Paystack for reactivation (Ref: ${ref})`);
+          const paystackTx = await this.paystack.chargeAuthorization({
+            email: customer.user.email,
+            amount: baseAmount,
+            authorizationCode: defaultPm.paystackAuthorizationCode,
+            reference: ref,
+            metadata: {
+              invoiceId: invoice.id,
+              subscriptionId: sub.id,
+              type: "RENEWAL_CHARGE",
+            },
+          });
+
+          if (paystackTx.status === "success") {
+            // Update Transaction
+            await tx.transaction.update({
+              where: { paystackReference: ref },
+              data: {
+                status: "SUCCESS",
+                channel: paystackTx.channel || null,
+                paidAt: paystackTx.paid_at ? new Date(paystackTx.paid_at) : new Date(),
+              },
+            });
+
+            // Update Invoice
+            await tx.invoice.update({
+              where: { id: invoice.id },
+              data: {
+                status: "PAID",
+                amountPaid: baseAmount,
+                amountDue: 0,
+                paidAt: paystackTx.paid_at ? new Date(paystackTx.paid_at) : new Date(),
+                paystackReference: ref,
+              },
+            });
+
+            // Reactivate subscription in DB
+            const updated = await tx.subscription.update({
+              where: { id: sub.id },
+              data: {
+                status: SubscriptionStatus.ACTIVE,
+                currentPeriodStart: invoice.periodStart,
+                currentPeriodEnd: invoice.periodEnd,
+                cancelAtPeriodEnd: false,
+                canceledAt: null,
+                cancelAt: null,
+                endedAt: null,
+              },
+              include: { plan: true, price: true },
+            });
+
+            // Audit log
+            await tx.subscriptionChange.create({
+              data: {
+                subscriptionId: sub.id,
+                changeType: SubscriptionChangeType.REACTIVATION,
+                fromPlanId: sub.planId,
+                toPlanId: sub.planId,
+                fromPriceId: sub.priceId,
+                toPriceId: sub.priceId,
+                reason: "Subscription reactivated and card charged successfully.",
+                initiatedBy: "customer",
+                prorationAmount: baseAmount,
+                effectiveAt: new Date(),
+              },
+            });
+
+            return updated;
+          } else {
+            throw new BadRequestException(`Card charge verification failed. Status: ${paystackTx.status}`);
+          }
+        } catch (e: any) {
+          this.logger.error(`Reactivation payment charge failed: ${e.message}`);
+          throw new BadRequestException(`Reactivation card charge failed: ${e.message}`);
+        }
+      });
+
+      return SubscriptionMapper.toSubscriptionResponse(updatedSub);
+    }
+
+    throw new BadRequestException(
+      `Subscription in status ${sub.status} cannot be reactivated. Please perform a new checkout.`
+    );
+  }
+
 
   /**
    * Generates a link to update card details for a subscription.

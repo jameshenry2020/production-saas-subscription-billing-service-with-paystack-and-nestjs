@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Body, Param, UseGuards, BadRequestException, NotFoundException } from "@nestjs/common";
 import { UsageService } from "./usage.service";
 import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
+import { SubscriptionGuard } from "../../../common/guards/subscription.guard";
 import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import { ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
@@ -18,6 +19,8 @@ class ToggleOverageDto {
 
 @ApiTags("Usage Tracking")
 @Controller("billing/usage")
+@UseGuards(JwtAuthGuard, SubscriptionGuard)
+@ApiCookieAuth("session")
 export class UsageController {
   constructor(
     private readonly usageService: UsageService,
@@ -35,8 +38,6 @@ export class UsageController {
   }
 
   @Post("track")
-  @UseGuards(JwtAuthGuard)
-  @ApiCookieAuth("session")
   @ApiOperation({
     summary: "Track usage event for a feature",
     description: "Logs a feature usage transaction, validating against the active limit and overage configuration.",
@@ -58,8 +59,6 @@ export class UsageController {
   }
 
   @Get("summary/:featureKey")
-  @UseGuards(JwtAuthGuard)
-  @ApiCookieAuth("session")
   @ApiOperation({
     summary: "Get current billing cycle usage summary for a feature",
   })
@@ -70,8 +69,6 @@ export class UsageController {
   }
 
   @Post("overage/toggle")
-  @UseGuards(JwtAuthGuard)
-  @ApiCookieAuth("session")
   @ApiOperation({
     summary: "Toggle overage billing activation for a feature",
     description: "Opt-in or opt-out of overage billing for features where overages are allowed by the active plan.",
@@ -83,5 +80,29 @@ export class UsageController {
     }
     const customerId = await this.getCustomerId(user.id);
     return this.usageService.toggleOverage(customerId, dto.featureKey, dto.enabled);
+  }
+
+  @Post("test/api-call")
+  @ApiOperation({
+    summary: "Simulate a feature action consuming API Call (metered)",
+    description: "Tracks usage of 1 api_calls unit. Protected by SubscriptionGuard.",
+  })
+  @ApiResponse({ status: 200, description: "Successfully tracked api_call." })
+  @ApiResponse({ status: 403, description: "Quota limit exceeded and overage is inactive." })
+  async testApiCall(@CurrentUser() user: any): Promise<any> {
+    const success = await this.usageService.trackUsageByUserId(user.id, "api_calls", 1);
+    return { success, message: "API call simulated successfully." };
+  }
+
+  @Post("test/add-seat")
+  @ApiOperation({
+    summary: "Simulate a feature action consuming User Seat (limit)",
+    description: "Tracks usage of 1 users (seats) unit. Protected by SubscriptionGuard.",
+  })
+  @ApiResponse({ status: 200, description: "Successfully tracked seat." })
+  @ApiResponse({ status: 403, description: "Quota limit exceeded." })
+  async testAddSeat(@CurrentUser() user: any): Promise<any> {
+    const success = await this.usageService.trackUsageByUserId(user.id, "users", 1);
+    return { success, message: "User seat added/simulated successfully." };
   }
 }
