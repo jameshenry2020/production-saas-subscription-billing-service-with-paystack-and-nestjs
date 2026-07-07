@@ -7,8 +7,12 @@ import { AuthModule } from "../../auth/auth.module";
 import { UserModule } from "../../users/user.module";
 import { IdempotencyService } from "../../../common/idempotency/idempotency.service";
 import { SubscriptionSchedulerService } from "../../../infrastructure/queue/producers/subscription-scheduler.service";
+import { BillingSchedulerService } from "../../../infrastructure/queue/producers/billing-scheduler.service";
+import { DunningSchedulerService } from "../../../infrastructure/queue/producers/dunning-scheduler.service";
 import { BillingProcessor } from "../../../infrastructure/queue/consumers/billing.processor";
 import { SystemSettingModule } from "../../../infrastructure/settings/system-setting.module";
+import { UsageModule } from "../usage/usage.module";
+import { EmailModule } from "../../../infrastructure/mails/email.module";
 
 @Module({
   imports: [
@@ -16,6 +20,8 @@ import { SystemSettingModule } from "../../../infrastructure/settings/system-set
     forwardRef(() => AuthModule),
     UserModule,
     SystemSettingModule,
+    UsageModule,
+    EmailModule,
     BullModule.registerQueue({
       name: "billing",
     }),
@@ -25,12 +31,16 @@ import { SystemSettingModule } from "../../../infrastructure/settings/system-set
     SubscriptionService,
     IdempotencyService,
     SubscriptionSchedulerService,
+    BillingSchedulerService,
+    DunningSchedulerService,
     BillingProcessor,
   ],
   exports: [
     SubscriptionService,
     IdempotencyService,
     SubscriptionSchedulerService,
+    BillingSchedulerService,
+    DunningSchedulerService,
     BillingProcessor,
   ],
 })

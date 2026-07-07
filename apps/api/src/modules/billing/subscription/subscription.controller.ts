@@ -49,4 +49,40 @@ export class SubscriptionController {
   ): Promise<SubscriptionResponseDto> {
     return this.subscriptionService.verifyAndSyncPayment(user.id, reference);
   }
+
+  @Post("cancel")
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth("session")
+  @ApiOperation({
+    summary: "Cancel subscription at period end",
+    description: "Sets the subscription to stop renewing at the end of the current billing cycle.",
+  })
+  @ApiResponse({ status: 200, type: SubscriptionResponseDto, description: "Subscription set to cancel." })
+  async cancel(@CurrentUser() user: any): Promise<SubscriptionResponseDto> {
+    return this.subscriptionService.cancelSubscription(user.id);
+  }
+
+  @Post("change-card-link")
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth("session")
+  @ApiOperation({
+    summary: "Generate a card details update link",
+    description: "Generates a Paystack hosted link for the user to update their card authorization details.",
+  })
+  @ApiResponse({ status: 200, description: "Successfully generated link." })
+  async getChangeCardLink(@CurrentUser() user: any): Promise<{ link: string }> {
+    return this.subscriptionService.generateChangeCardLink(user.id);
+  }
+
+  @Post("sync-card")
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth("session")
+  @ApiOperation({
+    summary: "Synchronize card details from Paystack",
+    description: "Fetches subscription details from Paystack and updates the local payment method registry.",
+  })
+  @ApiResponse({ status: 200, description: "Card details successfully synchronized." })
+  async syncCard(@CurrentUser() user: any): Promise<any> {
+    return this.subscriptionService.syncSubscriptionCard(user.id);
+  }
 }

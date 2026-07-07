@@ -17,6 +17,9 @@ import { SubscriptionStatus, SubscriptionChangeType, SubscriptionPaymentStatus, 
 import * as crypto from "crypto";
 import { computePeriodEnd, getIntervalDays, calculateProration } from "../../../utils/billing-helper";
 
+import { EmailQueueService } from "../../../infrastructure/mails/email-queue.service";
+import { UsageService } from "../usage/usage.service";
+
 @Injectable()
 export class SubscriptionService {
   private readonly logger = new Logger(SubscriptionService.name);
@@ -26,7 +29,9 @@ export class SubscriptionService {
     private readonly prisma: PrismaService,
     public readonly paystack: PaystackService,
     private readonly idempotency: IdempotencyService,
-    private readonly systemSetting: SystemSettingService
+    private readonly systemSetting: SystemSettingService,
+    private readonly emailQueue: EmailQueueService,
+    private readonly usageService: UsageService
   ) { }
 
   /**
@@ -383,7 +388,6 @@ export class SubscriptionService {
       paystackTx = await this.paystack.initializeTransaction({
         email: customer.user.email,
         amount: targetPrice.amount,
-        plan: targetPrice.paystackPlanCode ?? undefined,
         reference,
         metadata: {
           customerId: customer.id,
@@ -434,7 +438,6 @@ export class SubscriptionService {
       paystackTx = await this.paystack.initializeTransaction({
         email: customer.user.email,
         amount: targetPrice.amount,
-        plan: targetPrice.paystackPlanCode ?? undefined,
         reference,
         metadata: {
           customerId: customer.id,
@@ -475,7 +478,7 @@ export class SubscriptionService {
    * Charges a small refundable card verification fee (50 NGN) to capture reusable card authorization.
    */
   private async initializeTrialCheckout(customer: any, targetPrice: any): Promise<any> {
-    const CARD_VERIFICATION_AMOUNT_KOBO = 5000; // 50 NGN refundable card verification fee
+    const CARD_VERIFICATION_AMOUNT = 50; // 50 NGN refundable card verification fee
     const reference = `trial_verify_${customer.id}_${crypto.randomUUID().substring(0, 12)}`;
 
     // 1. Pre-create or retrieve the local subscription in INCOMPLETE status so we have a subscription ID
@@ -544,7 +547,7 @@ export class SubscriptionService {
     try {
       paystackTx = await this.paystack.initializeTransaction({
         email: customer.user.email,
-        amount: CARD_VERIFICATION_AMOUNT_KOBO,
+        amount: CARD_VERIFICATION_AMOUNT,
         reference,
         metadata: {
           customerId: customer.id,
@@ -564,7 +567,7 @@ export class SubscriptionService {
       data: {
         customerId: customer.id,
         status: "PENDING",
-        amount: CARD_VERIFICATION_AMOUNT_KOBO,
+        amount: CARD_VERIFICATION_AMOUNT,
         paystackReference: reference,
       },
     });
@@ -763,46 +766,7 @@ export class SubscriptionService {
   private async handleDowngrade(customer: any, currentSub: any, targetPrice: any, defaultPm: any): Promise<any> {
     this.logger.log(`Scheduling downgrade from ${currentSub.plan.name} to ${targetPrice.plan.name} at ${currentSub.currentPeriodEnd}`);
 
-    let newPaystackSubscriptionCode: string | null = null;
-    let newPaystackEmailToken: string | null = null;
-
-    // Sync with Paystack by disabling current subscription and creating a scheduled replacement
-    if (defaultPm && currentSub.paystackSubscriptionCode) {
-      try {
-        this.logger.log(`Disabling current Paystack subscription code: ${currentSub.paystackSubscriptionCode}`);
-        await this.paystack.disableSubscription({
-          code: currentSub.paystackSubscriptionCode,
-          token: currentSub.paystackEmailToken ?? "",
-        });
-
-        const futureStartDate = currentSub.currentPeriodEnd.toISOString();
-        this.logger.log(`Creating scheduled replacement subscription on Paystack: ${targetPrice.paystackPlanCode} starting at ${futureStartDate}`);
-        const paystackSub = await this.paystack.createSubscription({
-          customer: customer.paystackCustomerId,
-          plan: targetPrice.paystackPlanCode ?? "",
-          authorization: defaultPm.paystackAuthorizationCode,
-          startDate: futureStartDate,
-        });
-
-        newPaystackSubscriptionCode = paystackSub.subscription_code;
-        newPaystackEmailToken = paystackSub.email_token;
-      } catch (err: any) {
-        this.logger.error(`Failed to schedule downgrade on Paystack APIs: ${err.message}`);
-        throw new BadRequestException(`Paystack downgrade scheduling failed: ${err.message}`);
-      }
-    }
-
-    // Update only the Paystack codes on current subscription and log the scheduled change
     const updatedSub = await this.prisma.$transaction(async (tx) => {
-      const sub = await tx.subscription.update({
-        where: { id: currentSub.id },
-        data: {
-          paystackSubscriptionCode: newPaystackSubscriptionCode ?? currentSub.paystackSubscriptionCode,
-          paystackEmailToken: newPaystackEmailToken ?? currentSub.paystackEmailToken,
-        },
-        include: { plan: true, price: true },
-      });
-
       await tx.subscriptionChange.create({
         data: {
           subscriptionId: currentSub.id,
@@ -811,10 +775,6 @@ export class SubscriptionService {
           toPlanId: targetPrice.planId,
           fromPriceId: currentSub.priceId,
           toPriceId: targetPrice.id,
-          fromPaystackSubCode: currentSub.paystackSubscriptionCode,
-          toPaystackSubCode: newPaystackSubscriptionCode,
-          fromPaystackEmailToken: currentSub.paystackEmailToken,
-          toPaystackEmailToken: newPaystackEmailToken,
           prorationAmount: 0,
           effectiveAt: currentSub.currentPeriodEnd,
           reason: `Downgrade scheduled from ${currentSub.plan.name} to ${targetPrice.plan.name} to take effect at next cycle.`,
@@ -822,7 +782,7 @@ export class SubscriptionService {
         },
       });
 
-      return sub;
+      return currentSub;
     });
 
     return SubscriptionMapper.toSubscriptionResponse(updatedSub);
@@ -842,6 +802,9 @@ export class SubscriptionService {
     if (chargeMetadata?.type === "TRIAL_VERIFICATION") {
       return this.handleTrialVerificationSuccess(reference, paystackData, chargeMetadata);
     }
+    if (chargeMetadata?.type === "CARD_UPDATE") {
+      return this.handleCardUpdateSuccess(reference, paystackData, chargeMetadata);
+    }
     // ───────────────────────────────────────────────────────────────────────────
 
     // Fetch the pending payment record
@@ -849,14 +812,21 @@ export class SubscriptionService {
       where: { paystackReference: reference },
     });
 
-    // 1. If no SubscriptionPayment is found, check if this is an automated subscription renewal or scheduled downgrade confirmation
+    // 1. If no SubscriptionPayment is found, check if this is a custom renewal, dunning charge, or legacy subscription
     if (!payment) {
-      const subCode = paystackData.subscription?.subscription_code;
-      if (!subCode) {
-        throw new NotFoundException(`No pending payment or subscription found for reference: ${reference}`);
+      if (chargeMetadata?.type === "RENEWAL_CHARGE") {
+        return this.handleRenewalSuccess(reference, paystackData, chargeMetadata);
+      }
+      if (chargeMetadata?.type === "DUNNING_RETRY") {
+        return this.handleDunningRetrySuccess(reference, paystackData, chargeMetadata);
       }
 
-      this.logger.log(`Handling renewal/scheduled plan transition for Paystack code: ${subCode}`);
+      const subCode = paystackData.subscription?.subscription_code;
+      if (!subCode) {
+        throw new NotFoundException(`No pending payment, renewal metadata, or subscription found for reference: ${reference}`);
+      }
+
+      this.logger.log(`Handling legacy renewal/scheduled plan transition for Paystack code: ${subCode}`);
       const currentSub = await this.prisma.subscription.findUnique({
         where: { paystackSubscriptionCode: subCode },
         include: { plan: true, price: true },
@@ -1059,8 +1029,13 @@ export class SubscriptionService {
     }
 
     // Resolve paystack subscription details if provided
-    const paystackSubCode = paystackData.subscription?.subscription_code || currentSub.paystackSubscriptionCode;
-    const paystackEmailToken = paystackData.subscription?.email_token || currentSub.paystackEmailToken;
+    let paystackSubCode = paystackData.subscription?.subscription_code || currentSub.paystackSubscriptionCode;
+    let paystackEmailToken = paystackData.subscription?.email_token || currentSub.paystackEmailToken;
+
+    const paidDate = paystackData.paid_at ? new Date(paystackData.paid_at) : new Date();
+    const newPeriodEnd = computePeriodEnd(targetPrice.interval, paidDate);
+
+    // Backend-managed subscriptions do not sync upgrades on Paystack.
 
     return this.prisma.$transaction(async (tx) => {
       // Update SubscriptionPayment status
@@ -1098,6 +1073,12 @@ export class SubscriptionService {
       // Update Stored Card Authorization
       if (paystackData.authorization?.reusable) {
         const auth = paystackData.authorization;
+        // Reset defaults
+        await tx.paymentMethod.updateMany({
+          where: { customerId: currentSub.customerId },
+          data: { isDefault: false },
+        });
+
         await tx.paymentMethod.upsert({
           where: { paystackAuthorizationCode: auth.authorization_code },
           update: { isDefault: true },
@@ -1115,9 +1096,6 @@ export class SubscriptionService {
         });
       }
 
-      const paidDate = paystackData.paid_at ? new Date(paystackData.paid_at) : new Date();
-      const newPeriodEnd = computePeriodEnd(targetPrice.interval, paidDate);
-
       // Update active subscription
       const sub = await tx.subscription.update({
         where: { id: currentSub.id },
@@ -1127,8 +1105,6 @@ export class SubscriptionService {
           status: SubscriptionStatus.ACTIVE,
           currentPeriodStart: paidDate,
           currentPeriodEnd: newPeriodEnd,
-          paystackSubscriptionCode: paystackSubCode,
-          paystackEmailToken: paystackEmailToken,
         },
         include: { plan: true, price: true },
       });
@@ -1259,24 +1235,10 @@ export class SubscriptionService {
     const trialStart = new Date();
     const trialEnd = new Date(trialStart.getTime() + targetPrice.trialPeriodDays * 24 * 60 * 60 * 1000);
 
-    // 5. Create Subscription on Paystack starting on the trial expiration date
-    let paystackSubscriptionCode: string | null = null;
-    let paystackEmailToken: string | null = null;
-
-    try {
-      this.logger.log(`Registering trial subscription on Paystack for plan ${targetPrice.paystackPlanCode} starting at ${trialEnd.toISOString()}`);
-      const paystackSub = await this.paystack.createSubscription({
-        customer: customer.paystackCustomerId,
-        plan: targetPrice.paystackPlanCode ?? "",
-        authorization: paystackData.authorization?.authorization_code,
-        startDate: trialEnd.toISOString(),
-      });
-      paystackSubscriptionCode = paystackSub.subscription_code;
-      paystackEmailToken = paystackSub.email_token;
-    } catch (err: any) {
-      this.logger.error(`Failed to register trial subscription on Paystack: ${err.message}`);
-      throw new BadRequestException(`Paystack subscription registration failed: ${err.message}`);
-    }
+    // 5. Backend-managed: no need to register subscription on Paystack.
+    // Card will be billed when trial period ends via the scheduler.
+    const paystackSubscriptionCode = null;
+    const paystackEmailToken = null;
 
     // 6. Asynchronously trigger the refund of the verification charge
     this.paystack.refundTransaction(reference).then(() => {
@@ -1349,6 +1311,72 @@ export class SubscriptionService {
     });
 
     return subscription;
+  }
+
+  /**
+   * Confirms successful card update transaction.
+   * Caches the customer's payment method card and auto-refunds the verification fee.
+   */
+  private async handleCardUpdateSuccess(reference: string, paystackData: any, chargeMetadata: any): Promise<any> {
+    const { customerId } = chargeMetadata;
+    this.logger.log(`Handling card update success for customer ${customerId}`);
+
+    const customer = await this.prisma.customer.findUnique({
+      where: { id: customerId },
+    });
+
+    if (!customer) {
+      throw new NotFoundException(`Customer ${customerId} not found.`);
+    }
+
+    let defaultPm = null;
+
+    if (paystackData.authorization?.reusable) {
+      const auth = paystackData.authorization;
+      
+      defaultPm = await this.prisma.$transaction(async (tx) => {
+        // Reset defaults
+        await tx.paymentMethod.updateMany({
+          where: { customerId: customer.id },
+          data: { isDefault: false },
+        });
+
+        return tx.paymentMethod.upsert({
+          where: { paystackAuthorizationCode: auth.authorization_code },
+          update: { isDefault: true },
+          create: {
+            customerId: customer.id,
+            paystackAuthorizationCode: auth.authorization_code,
+            cardType: auth.card_type,
+            bank: auth.bank,
+            last4: auth.last4,
+            expMonth: auth.exp_month,
+            expYear: auth.exp_year,
+            isReusable: true,
+            isDefault: true,
+          },
+        });
+      });
+    }
+
+    // Refund the verification charge
+    this.paystack.refundTransaction(reference).then(() => {
+      this.logger.log(`Successfully requested refund of card update verification charge: ${reference}`);
+    }).catch((err) => {
+      this.logger.error(`Failed to refund card update verification charge ${reference}: ${err.message}`);
+    });
+
+    // Mark the verification Transaction record status as SUCCESS
+    await this.prisma.transaction.updateMany({
+      where: { paystackReference: reference },
+      data: {
+        status: "SUCCESS",
+        channel: paystackData.channel || null,
+        paidAt: paystackData.paid_at ? new Date(paystackData.paid_at) : new Date(),
+      },
+    });
+
+    return defaultPm;
   }
 
   /**
@@ -1463,6 +1491,569 @@ export class SubscriptionService {
       });
 
       return { subPayment, invoice };
+    });
+  }
+
+  /**
+   * Cancels subscription at the period end.
+   */
+  async cancelSubscription(userId: string): Promise<SubscriptionResponseDto> {
+    this.logger.log(`Initiating subscription cancellation for user ${userId}`);
+
+    const customer = await this.prisma.customer.findUnique({
+      where: { userId },
+    });
+
+    if (!customer) {
+      throw new NotFoundException("Customer profile not found for this user.");
+    }
+
+    const sub = await this.prisma.subscription.findFirst({
+      where: {
+        customerId: customer.id,
+        status: {
+          in: [
+            SubscriptionStatus.ACTIVE,
+            SubscriptionStatus.TRIALING,
+            SubscriptionStatus.PAST_DUE,
+          ],
+        },
+      },
+      include: { plan: true, price: true },
+    });
+
+    if (!sub) {
+      throw new NotFoundException("No active, trialing, or past-due subscription found to cancel.");
+    }
+
+    if (sub.cancelAtPeriodEnd) {
+      throw new BadRequestException("Subscription is already set to cancel at period end.");
+    }
+
+    if (sub.plan.slug === "free") {
+      throw new BadRequestException("Cannot cancel a subscription on the Free plan.");
+    }
+
+    // Update locally in database
+    const updatedSub = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.subscription.update({
+        where: { id: sub.id },
+        data: {
+          cancelAtPeriodEnd: true,
+          canceledAt: new Date(),
+          cancelAt: sub.currentPeriodEnd,
+        },
+        include: { plan: true, price: true },
+      });
+
+      await tx.subscriptionChange.create({
+        data: {
+          subscriptionId: sub.id,
+          changeType: SubscriptionChangeType.CANCELLATION,
+          fromPlanId: sub.planId,
+          fromPriceId: sub.priceId,
+          reason: "Customer requested subscription cancellation.",
+          initiatedBy: "customer",
+          prorationAmount: 0,
+          effectiveAt: sub.currentPeriodEnd,
+        },
+      });
+
+      return updated;
+    });
+
+    return SubscriptionMapper.toSubscriptionResponse(updatedSub);
+  }
+
+  /**
+   * Generates a link to update card details for a subscription.
+   */
+  async generateChangeCardLink(userId: string): Promise<{ link: string }> {
+    this.logger.log(`Generating card update link for user ${userId}`);
+
+    const customer = await this.prisma.customer.findUnique({
+      where: { userId },
+      include: { user: true },
+    });
+
+    if (!customer) {
+      throw new NotFoundException("Customer profile not found for this user.");
+    }
+
+    const sub = await this.prisma.subscription.findFirst({
+      where: {
+        customerId: customer.id,
+        status: {
+          in: [
+            SubscriptionStatus.ACTIVE,
+            SubscriptionStatus.TRIALING,
+            SubscriptionStatus.PAST_DUE,
+          ],
+        },
+      },
+      include: { plan: true },
+    });
+
+    if (!sub) {
+      throw new NotFoundException("No active, trialing, or past-due subscription found.");
+    }
+
+    if (sub.plan.slug === "free") {
+      throw new BadRequestException("Cannot update payment method for the Free plan.");
+    }
+
+    const reference = `card_update_${customer.id}_${crypto.randomUUID().substring(0, 12)}`;
+    const CARD_VERIFICATION_AMOUNT = 50; // 50 NGN
+
+    try {
+      const paystackTx = await this.paystack.initializeTransaction({
+        email: customer.user.email,
+        amount: CARD_VERIFICATION_AMOUNT,
+        reference,
+        metadata: {
+          customerId: customer.id,
+          subscriptionId: sub.id,
+          type: "CARD_UPDATE",
+        },
+      });
+
+      // Persist pending Transaction record
+      await this.prisma.transaction.create({
+        data: {
+          customerId: customer.id,
+          status: "PENDING",
+          amount: CARD_VERIFICATION_AMOUNT,
+          paystackReference: reference,
+        },
+      });
+
+      return { link: paystackTx.authorization_url };
+    } catch (err: any) {
+      this.logger.error(`Failed to initialize card update transaction: ${err.message}`);
+      throw new BadRequestException(`Paystack initialization failed: ${err.message}`);
+    }
+  }
+
+  /**
+   * Synchronizes subscription card details from Paystack to database.
+   */
+  async syncSubscriptionCard(userId: string): Promise<any> {
+    this.logger.log(`Synchronizing subscription card details for user ${userId}`);
+
+    const customer = await this.prisma.customer.findUnique({
+      where: { userId },
+    });
+
+    if (!customer) {
+      throw new NotFoundException("Customer profile not found for this user.");
+    }
+
+    const defaultPm = await this.prisma.paymentMethod.findFirst({
+      where: { customerId: customer.id, isDefault: true },
+    });
+
+    if (!defaultPm) {
+      throw new NotFoundException("No payment card registered for this customer. Please add a payment method.");
+    }
+
+    return defaultPm;
+  }
+
+  private async handleRenewalSuccess(reference: string, paystackData: any, chargeMetadata: any): Promise<any> {
+    const { invoiceId, subscriptionId } = chargeMetadata;
+    this.logger.log(`Handling renewal success for subscription ${subscriptionId}, invoice ${invoiceId}`);
+
+    const invoice = await this.prisma.invoice.findUnique({
+      where: { id: invoiceId },
+      include: { subscription: { include: { plan: true, price: true, customer: { include: { user: true } } } } },
+    });
+
+    if (!invoice) {
+      throw new NotFoundException(`Invoice ${invoiceId} not found during renewal confirmation.`);
+    }
+
+    if (invoice.status === "PAID") {
+      this.logger.log(`Invoice ${invoiceId} is already PAID. Skipping duplicate updates.`);
+      return invoice.subscription;
+    }
+
+    const sub = invoice.subscription;
+    const paidDate = paystackData.paid_at ? new Date(paystackData.paid_at) : new Date();
+    const nextPeriodStart = sub.currentPeriodEnd;
+    const nextPeriodEnd = computePeriodEnd(sub.price.interval, nextPeriodStart);
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.transaction.updateMany({
+        where: { paystackReference: reference },
+        data: {
+          status: "SUCCESS",
+          paidAt: paidDate,
+          channel: paystackData.channel || null,
+        },
+      });
+
+      await tx.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          status: "PAID",
+          amountPaid: invoice.total,
+          amountDue: 0,
+          paidAt: paidDate,
+          paystackReference: reference,
+        },
+      });
+
+      const updatedSub = await tx.subscription.update({
+        where: { id: sub.id },
+        data: {
+          status: SubscriptionStatus.ACTIVE,
+          currentPeriodStart: nextPeriodStart,
+          currentPeriodEnd: nextPeriodEnd,
+        },
+        include: { plan: true, price: true },
+      });
+
+      await tx.dunningAttempt.updateMany({
+        where: { invoiceId: invoice.id, status: "SCHEDULED" },
+        data: { status: "SUCCESS" },
+      });
+
+      await this.emailQueue.enqueueEmail({
+        recipients: [sub.customer.user.email],
+        subject: `Invoice receipt for your ${sub.plan.name} renewal`,
+        template: "invoice-receipt",
+        contextItems: {
+          customerName: sub.customer.user.name,
+          invoiceNumber: invoice.invoiceNumber,
+          amountPaid: invoice.total.toFixed(2),
+          currency: sub.price.currency,
+          periodEnd: nextPeriodEnd.toLocaleDateString(),
+        },
+      });
+
+      this.logger.log(`Subscription ${sub.id} successfully renewed until ${nextPeriodEnd}`);
+      return updatedSub;
+    });
+  }
+
+  private async handleDunningRetrySuccess(reference: string, paystackData: any, chargeMetadata: any): Promise<any> {
+    const { invoiceId, subscriptionId, dunningAttemptId } = chargeMetadata;
+    this.logger.log(`Handling dunning retry success for subscription ${subscriptionId}, invoice ${invoiceId}, attempt ${dunningAttemptId}`);
+
+    const invoice = await this.prisma.invoice.findUnique({
+      where: { id: invoiceId },
+      include: { subscription: { include: { plan: true, price: true, customer: { include: { user: true } } } } },
+    });
+
+    if (!invoice) {
+      throw new NotFoundException(`Invoice ${invoiceId} not found during dunning confirmation.`);
+    }
+
+    if (invoice.status === "PAID") {
+      this.logger.log(`Invoice ${invoiceId} is already PAID. Skipping duplicate dunning recovery.`);
+      return invoice.subscription;
+    }
+
+    const sub = invoice.subscription;
+    const paidDate = paystackData.paid_at ? new Date(paystackData.paid_at) : new Date();
+    const nextPeriodStart = sub.currentPeriodEnd;
+    const nextPeriodEnd = computePeriodEnd(sub.price.interval, nextPeriodStart);
+
+    return this.prisma.$transaction(async (tx) => {
+      if (dunningAttemptId) {
+        await tx.dunningAttempt.update({
+          where: { id: dunningAttemptId },
+          data: { status: "SUCCESS" },
+        });
+      }
+
+      await tx.dunningAttempt.updateMany({
+        where: { invoiceId: invoice.id, status: "SCHEDULED" },
+        data: { status: "SUCCESS" },
+      });
+
+      await tx.transaction.updateMany({
+        where: { paystackReference: reference },
+        data: {
+          status: "SUCCESS",
+          paidAt: paidDate,
+          channel: paystackData.channel || null,
+        },
+      });
+
+      await tx.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          status: "PAID",
+          amountPaid: invoice.total,
+          amountDue: 0,
+          paidAt: paidDate,
+          paystackReference: reference,
+        },
+      });
+
+      const updatedSub = await tx.subscription.update({
+        where: { id: sub.id },
+        data: {
+          status: SubscriptionStatus.ACTIVE,
+          currentPeriodStart: nextPeriodStart,
+          currentPeriodEnd: nextPeriodEnd,
+        },
+        include: { plan: true, price: true },
+      });
+
+      await this.emailQueue.enqueueEmail({
+        recipients: [sub.customer.user.email],
+        subject: `Payment successful - subscription recovered!`,
+        template: "payment-recovered",
+        contextItems: {
+          customerName: sub.customer.user.name,
+          invoiceNumber: invoice.invoiceNumber,
+          amountPaid: invoice.total.toFixed(2),
+          currency: invoice.currency,
+        },
+      });
+
+      this.logger.log(`Dunning recovered subscription ${sub.id}. Service restored.`);
+      return updatedSub;
+    });
+  }
+
+  async processFailedPayment(reference: string, paystackData: any): Promise<any> {
+    this.logger.log(`Processing failed payment for reference: ${reference}`);
+
+    const chargeMetadata = paystackData?.metadata;
+    if (!chargeMetadata) {
+      this.logger.warn(`No metadata found in failed payment reference: ${reference}. Skipping.`);
+      return;
+    }
+
+    const { invoiceId, subscriptionId, dunningAttemptId, type } = chargeMetadata;
+
+    const transaction = await this.prisma.transaction.findFirst({
+      where: { paystackReference: reference },
+    });
+
+    if (transaction && transaction.status === "FAILED") {
+      this.logger.log(`Transaction for reference ${reference} is already marked FAILED. Skipping.`);
+      return;
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.transaction.updateMany({
+        where: { paystackReference: reference },
+        data: { status: "FAILED" },
+      });
+
+      if (type === "RENEWAL_CHARGE") {
+        this.logger.log(`Processing renewal charge failure for subscription ${subscriptionId}, invoice ${invoiceId}`);
+        const invoice = await tx.invoice.findUnique({
+          where: { id: invoiceId },
+        });
+        const sub = await tx.subscription.findUnique({
+          where: { id: subscriptionId },
+          include: { plan: true, customer: { include: { user: true } } },
+        });
+
+        if (!invoice || !sub) {
+          throw new NotFoundException("Invoice or subscription not found for failed renewal.");
+        }
+
+        if (invoice.status === "PAID") {
+          this.logger.warn(`Renewal invoice ${invoiceId} is already PAID. Ignoring failed webhook callback.`);
+          return;
+        }
+
+        const existingDunning = await tx.dunningAttempt.findFirst({
+          where: { invoiceId: invoice.id },
+        });
+
+        if (existingDunning) {
+          this.logger.log(`Dunning sequence already active for invoice ${invoiceId}. Skipping.`);
+          return;
+        }
+
+        await tx.subscription.update({
+          where: { id: sub.id },
+          data: { status: SubscriptionStatus.PAST_DUE },
+        });
+
+        await tx.invoice.update({
+          where: { id: invoice.id },
+          data: { status: "OVERDUE" },
+        });
+
+        const nextRetryDate = new Date();
+        nextRetryDate.setDate(nextRetryDate.getDate() + 1);
+
+        await tx.dunningAttempt.create({
+          data: {
+            invoiceId: invoice.id,
+            attemptNumber: 1,
+            status: "SCHEDULED",
+            scheduledAt: nextRetryDate,
+            failureReason: paystackData.gateway_response || "Card charge failed.",
+          },
+        });
+
+        await this.emailQueue.enqueueEmail({
+          recipients: [sub.customer.user.email],
+          subject: `Payment failed for your ${sub.plan.name} subscription renewal`,
+          template: "dunning-warning",
+          contextItems: {
+            customerName: sub.customer.user.name,
+            invoiceNumber: invoice.invoiceNumber,
+            amountDue: invoice.total.toFixed(2),
+            currency: invoice.currency,
+            attemptNumber: 1,
+            nextRetryDate: nextRetryDate.toLocaleDateString(),
+          },
+        });
+
+        this.logger.log(`Renewal charge failed. Initiated dunning sequence for subscription ${sub.id}. Attempt 1 scheduled.`);
+      }
+
+      if (type === "DUNNING_RETRY") {
+        this.logger.log(`Processing dunning retry failure for subscription ${subscriptionId}, invoice ${invoiceId}, attempt ID ${dunningAttemptId}`);
+
+        const retry = await tx.dunningAttempt.findUnique({
+          where: { id: dunningAttemptId },
+        });
+
+        if (!retry || retry.status !== "SCHEDULED") {
+          this.logger.warn(`Dunning attempt ${dunningAttemptId} not found or already processed.`);
+          return;
+        }
+
+        const invoice = await tx.invoice.findUnique({
+          where: { id: invoiceId },
+        });
+        const sub = await tx.subscription.findUnique({
+          where: { id: subscriptionId },
+          include: { plan: true, customer: { include: { user: true } } },
+        });
+
+        if (!invoice || !sub || !retry) {
+          throw new NotFoundException("Metadata relations not found for failed dunning retry.");
+        }
+
+        if (invoice.status === "PAID") {
+          this.logger.warn(`Invoice ${invoiceId} is already PAID. Skipping failed dunning updates.`);
+          return;
+        }
+
+        const attemptNumber = retry.attemptNumber;
+        const failureReason = paystackData.gateway_response || "Card charge failed.";
+
+        await tx.dunningAttempt.update({
+          where: { id: retry.id },
+          data: { status: "FAILED" },
+        });
+
+        if (attemptNumber < 5) {
+          const nextAttemptNumber = attemptNumber + 1;
+          const nextRetryDate = new Date();
+          const delayDays = nextAttemptNumber === 2 ? 1 : 2;
+          nextRetryDate.setDate(nextRetryDate.getDate() + delayDays);
+
+          await tx.dunningAttempt.create({
+            data: {
+              invoiceId: invoice.id,
+              attemptNumber: nextAttemptNumber,
+              status: "SCHEDULED",
+              scheduledAt: nextRetryDate,
+              failureReason,
+            },
+          });
+
+          await this.emailQueue.enqueueEmail({
+            recipients: [sub.customer.user.email],
+            subject: `Renewal Payment Failed - Attempt ${attemptNumber}/5`,
+            template: "dunning-warning",
+            contextItems: {
+              customerName: sub.customer.user.name,
+              invoiceNumber: invoice.invoiceNumber,
+              amountDue: invoice.total.toFixed(2),
+              currency: invoice.currency,
+              attemptNumber,
+              nextRetryDate: nextRetryDate.toLocaleDateString(),
+            },
+          });
+          this.logger.log(`Dunning attempt ${attemptNumber} failed. Scheduled next retry ${nextAttemptNumber} for ${nextRetryDate}`);
+        } else {
+          this.logger.error(`Dunning failed all 5 attempts for subscription ${sub.id}. Restricting account.`);
+
+          await tx.invoice.update({
+            where: { id: invoice.id },
+            data: { status: "UNCOLLECTIBLE" },
+          });
+
+          const freePlanSetting = await tx.systemSetting.findUnique({
+            where: { key: "FREE_PLAN_AUTO_SUBSCRIBE" },
+          });
+          const isFreeEnabled = freePlanSetting ? freePlanSetting.value === "true" : true;
+
+          if (isFreeEnabled) {
+            const freePlan = await tx.plan.findUnique({
+              where: { slug: "free" },
+              include: { prices: true },
+            });
+            const freePrice = freePlan?.prices.find((p) => p.isActive);
+
+            if (freePlan && freePrice) {
+              await tx.subscription.update({
+                where: { id: sub.id },
+                data: {
+                  planId: freePlan.id,
+                  priceId: freePrice.id,
+                  status: SubscriptionStatus.ACTIVE,
+                  currentPeriodStart: new Date(),
+                  currentPeriodEnd: computePeriodEnd(freePrice.interval),
+                },
+              });
+
+              await tx.subscriptionChange.create({
+                data: {
+                  subscriptionId: sub.id,
+                  changeType: "DOWNGRADE",
+                  fromPlanId: sub.planId,
+                  toPlanId: freePlan.id,
+                  fromPriceId: sub.priceId,
+                  toPriceId: freePrice.id,
+                  reason: "Downgraded to Free Plan after 5 unsuccessful renewal payment attempts (dunning timeout).",
+                  initiatedBy: "system:dunning",
+                },
+              });
+            }
+          } else {
+            await tx.subscription.update({
+              where: { id: sub.id },
+              data: { status: SubscriptionStatus.RESTRICTED },
+            });
+
+            await tx.subscriptionChange.create({
+              data: {
+                subscriptionId: sub.id,
+                changeType: SubscriptionChangeType.PAUSE,
+                fromPlanId: sub.planId,
+                fromPriceId: sub.priceId,
+                reason: "Suspended after 5 unsuccessful renewal payment attempts (dunning timeout).",
+                initiatedBy: "system:dunning",
+              },
+            });
+          }
+
+          await this.emailQueue.enqueueEmail({
+            recipients: [sub.customer.user.email],
+            subject: `Subscription Restricted - Payment Failed`,
+            template: "dunning-failed-restricted",
+            contextItems: {
+              customerName: sub.customer.user.name,
+              invoiceNumber: invoice.invoiceNumber,
+            },
+          });
+        }
+      }
     });
   }
 }

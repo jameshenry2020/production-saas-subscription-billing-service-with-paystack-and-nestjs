@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
 import { RedisConfiguration } from "../../config/app-config";
+import { QUEUE_NAMES } from "./queue.constant";
 
 @Module({
   imports: [
@@ -13,9 +14,10 @@ import { RedisConfiguration } from "../../config/app-config";
         },
       }),
     }),
-    BullModule.registerQueue({
-      name: "billing",
-    }),
+    BullModule.registerQueue(
+      { name: QUEUE_NAMES.BILLING },
+      { name: QUEUE_NAMES.EMAIL }
+    ),
   ],
   exports: [BullModule],
 })
