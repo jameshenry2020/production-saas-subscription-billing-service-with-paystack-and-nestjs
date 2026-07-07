@@ -185,6 +185,7 @@ export type FeatureWhereInput = {
   planFeatures?: Prisma.PlanFeatureListRelationFilter
   usageRecords?: Prisma.UsageRecordListRelationFilter
   usageSummaries?: Prisma.UsageSummaryListRelationFilter
+  overageSettings?: Prisma.SubscriptionOverageSettingListRelationFilter
 }
 
 export type FeatureOrderByWithRelationInput = {
@@ -196,6 +197,7 @@ export type FeatureOrderByWithRelationInput = {
   planFeatures?: Prisma.PlanFeatureOrderByRelationAggregateInput
   usageRecords?: Prisma.UsageRecordOrderByRelationAggregateInput
   usageSummaries?: Prisma.UsageSummaryOrderByRelationAggregateInput
+  overageSettings?: Prisma.SubscriptionOverageSettingOrderByRelationAggregateInput
 }
 
 export type FeatureWhereUniqueInput = Prisma.AtLeast<{
@@ -210,6 +212,7 @@ export type FeatureWhereUniqueInput = Prisma.AtLeast<{
   planFeatures?: Prisma.PlanFeatureListRelationFilter
   usageRecords?: Prisma.UsageRecordListRelationFilter
   usageSummaries?: Prisma.UsageSummaryListRelationFilter
+  overageSettings?: Prisma.SubscriptionOverageSettingListRelationFilter
 }, "id" | "key">
 
 export type FeatureOrderByWithAggregationInput = {
@@ -243,6 +246,7 @@ export type FeatureCreateInput = {
   planFeatures?: Prisma.PlanFeatureCreateNestedManyWithoutFeatureInput
   usageRecords?: Prisma.UsageRecordCreateNestedManyWithoutFeatureInput
   usageSummaries?: Prisma.UsageSummaryCreateNestedManyWithoutFeatureInput
+  overageSettings?: Prisma.SubscriptionOverageSettingCreateNestedManyWithoutFeatureInput
 }
 
 export type FeatureUncheckedCreateInput = {
@@ -254,6 +258,7 @@ export type FeatureUncheckedCreateInput = {
   planFeatures?: Prisma.PlanFeatureUncheckedCreateNestedManyWithoutFeatureInput
   usageRecords?: Prisma.UsageRecordUncheckedCreateNestedManyWithoutFeatureInput
   usageSummaries?: Prisma.UsageSummaryUncheckedCreateNestedManyWithoutFeatureInput
+  overageSettings?: Prisma.SubscriptionOverageSettingUncheckedCreateNestedManyWithoutFeatureInput
 }
 
 export type FeatureUpdateInput = {
@@ -265,6 +270,7 @@ export type FeatureUpdateInput = {
   planFeatures?: Prisma.PlanFeatureUpdateManyWithoutFeatureNestedInput
   usageRecords?: Prisma.UsageRecordUpdateManyWithoutFeatureNestedInput
   usageSummaries?: Prisma.UsageSummaryUpdateManyWithoutFeatureNestedInput
+  overageSettings?: Prisma.SubscriptionOverageSettingUpdateManyWithoutFeatureNestedInput
 }
 
 export type FeatureUncheckedUpdateInput = {
@@ -276,6 +282,7 @@ export type FeatureUncheckedUpdateInput = {
   planFeatures?: Prisma.PlanFeatureUncheckedUpdateManyWithoutFeatureNestedInput
   usageRecords?: Prisma.UsageRecordUncheckedUpdateManyWithoutFeatureNestedInput
   usageSummaries?: Prisma.UsageSummaryUncheckedUpdateManyWithoutFeatureNestedInput
+  overageSettings?: Prisma.SubscriptionOverageSettingUncheckedUpdateManyWithoutFeatureNestedInput
 }
 
 export type FeatureCreateManyInput = {
@@ -349,6 +356,20 @@ export type FeatureUpdateOneRequiredWithoutPlanFeaturesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.FeatureUpdateToOneWithWhereWithoutPlanFeaturesInput, Prisma.FeatureUpdateWithoutPlanFeaturesInput>, Prisma.FeatureUncheckedUpdateWithoutPlanFeaturesInput>
 }
 
+export type FeatureCreateNestedOneWithoutOverageSettingsInput = {
+  create?: Prisma.XOR<Prisma.FeatureCreateWithoutOverageSettingsInput, Prisma.FeatureUncheckedCreateWithoutOverageSettingsInput>
+  connectOrCreate?: Prisma.FeatureCreateOrConnectWithoutOverageSettingsInput
+  connect?: Prisma.FeatureWhereUniqueInput
+}
+
+export type FeatureUpdateOneRequiredWithoutOverageSettingsNestedInput = {
+  create?: Prisma.XOR<Prisma.FeatureCreateWithoutOverageSettingsInput, Prisma.FeatureUncheckedCreateWithoutOverageSettingsInput>
+  connectOrCreate?: Prisma.FeatureCreateOrConnectWithoutOverageSettingsInput
+  upsert?: Prisma.FeatureUpsertWithoutOverageSettingsInput
+  connect?: Prisma.FeatureWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FeatureUpdateToOneWithWhereWithoutOverageSettingsInput, Prisma.FeatureUpdateWithoutOverageSettingsInput>, Prisma.FeatureUncheckedUpdateWithoutOverageSettingsInput>
+}
+
 export type FeatureCreateNestedOneWithoutUsageRecordsInput = {
   create?: Prisma.XOR<Prisma.FeatureCreateWithoutUsageRecordsInput, Prisma.FeatureUncheckedCreateWithoutUsageRecordsInput>
   connectOrCreate?: Prisma.FeatureCreateOrConnectWithoutUsageRecordsInput
@@ -385,6 +406,7 @@ export type FeatureCreateWithoutPlanFeaturesInput = {
   type: $Enums.FeatureType
   usageRecords?: Prisma.UsageRecordCreateNestedManyWithoutFeatureInput
   usageSummaries?: Prisma.UsageSummaryCreateNestedManyWithoutFeatureInput
+  overageSettings?: Prisma.SubscriptionOverageSettingCreateNestedManyWithoutFeatureInput
 }
 
 export type FeatureUncheckedCreateWithoutPlanFeaturesInput = {
@@ -395,6 +417,7 @@ export type FeatureUncheckedCreateWithoutPlanFeaturesInput = {
   type: $Enums.FeatureType
   usageRecords?: Prisma.UsageRecordUncheckedCreateNestedManyWithoutFeatureInput
   usageSummaries?: Prisma.UsageSummaryUncheckedCreateNestedManyWithoutFeatureInput
+  overageSettings?: Prisma.SubscriptionOverageSettingUncheckedCreateNestedManyWithoutFeatureInput
 }
 
 export type FeatureCreateOrConnectWithoutPlanFeaturesInput = {
@@ -421,6 +444,7 @@ export type FeatureUpdateWithoutPlanFeaturesInput = {
   type?: Prisma.EnumFeatureTypeFieldUpdateOperationsInput | $Enums.FeatureType
   usageRecords?: Prisma.UsageRecordUpdateManyWithoutFeatureNestedInput
   usageSummaries?: Prisma.UsageSummaryUpdateManyWithoutFeatureNestedInput
+  overageSettings?: Prisma.SubscriptionOverageSettingUpdateManyWithoutFeatureNestedInput
 }
 
 export type FeatureUncheckedUpdateWithoutPlanFeaturesInput = {
@@ -429,6 +453,67 @@ export type FeatureUncheckedUpdateWithoutPlanFeaturesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumFeatureTypeFieldUpdateOperationsInput | $Enums.FeatureType
+  usageRecords?: Prisma.UsageRecordUncheckedUpdateManyWithoutFeatureNestedInput
+  usageSummaries?: Prisma.UsageSummaryUncheckedUpdateManyWithoutFeatureNestedInput
+  overageSettings?: Prisma.SubscriptionOverageSettingUncheckedUpdateManyWithoutFeatureNestedInput
+}
+
+export type FeatureCreateWithoutOverageSettingsInput = {
+  id?: string
+  key: string
+  name: string
+  unit?: string | null
+  type: $Enums.FeatureType
+  planFeatures?: Prisma.PlanFeatureCreateNestedManyWithoutFeatureInput
+  usageRecords?: Prisma.UsageRecordCreateNestedManyWithoutFeatureInput
+  usageSummaries?: Prisma.UsageSummaryCreateNestedManyWithoutFeatureInput
+}
+
+export type FeatureUncheckedCreateWithoutOverageSettingsInput = {
+  id?: string
+  key: string
+  name: string
+  unit?: string | null
+  type: $Enums.FeatureType
+  planFeatures?: Prisma.PlanFeatureUncheckedCreateNestedManyWithoutFeatureInput
+  usageRecords?: Prisma.UsageRecordUncheckedCreateNestedManyWithoutFeatureInput
+  usageSummaries?: Prisma.UsageSummaryUncheckedCreateNestedManyWithoutFeatureInput
+}
+
+export type FeatureCreateOrConnectWithoutOverageSettingsInput = {
+  where: Prisma.FeatureWhereUniqueInput
+  create: Prisma.XOR<Prisma.FeatureCreateWithoutOverageSettingsInput, Prisma.FeatureUncheckedCreateWithoutOverageSettingsInput>
+}
+
+export type FeatureUpsertWithoutOverageSettingsInput = {
+  update: Prisma.XOR<Prisma.FeatureUpdateWithoutOverageSettingsInput, Prisma.FeatureUncheckedUpdateWithoutOverageSettingsInput>
+  create: Prisma.XOR<Prisma.FeatureCreateWithoutOverageSettingsInput, Prisma.FeatureUncheckedCreateWithoutOverageSettingsInput>
+  where?: Prisma.FeatureWhereInput
+}
+
+export type FeatureUpdateToOneWithWhereWithoutOverageSettingsInput = {
+  where?: Prisma.FeatureWhereInput
+  data: Prisma.XOR<Prisma.FeatureUpdateWithoutOverageSettingsInput, Prisma.FeatureUncheckedUpdateWithoutOverageSettingsInput>
+}
+
+export type FeatureUpdateWithoutOverageSettingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  key?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumFeatureTypeFieldUpdateOperationsInput | $Enums.FeatureType
+  planFeatures?: Prisma.PlanFeatureUpdateManyWithoutFeatureNestedInput
+  usageRecords?: Prisma.UsageRecordUpdateManyWithoutFeatureNestedInput
+  usageSummaries?: Prisma.UsageSummaryUpdateManyWithoutFeatureNestedInput
+}
+
+export type FeatureUncheckedUpdateWithoutOverageSettingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  key?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumFeatureTypeFieldUpdateOperationsInput | $Enums.FeatureType
+  planFeatures?: Prisma.PlanFeatureUncheckedUpdateManyWithoutFeatureNestedInput
   usageRecords?: Prisma.UsageRecordUncheckedUpdateManyWithoutFeatureNestedInput
   usageSummaries?: Prisma.UsageSummaryUncheckedUpdateManyWithoutFeatureNestedInput
 }
@@ -441,6 +526,7 @@ export type FeatureCreateWithoutUsageRecordsInput = {
   type: $Enums.FeatureType
   planFeatures?: Prisma.PlanFeatureCreateNestedManyWithoutFeatureInput
   usageSummaries?: Prisma.UsageSummaryCreateNestedManyWithoutFeatureInput
+  overageSettings?: Prisma.SubscriptionOverageSettingCreateNestedManyWithoutFeatureInput
 }
 
 export type FeatureUncheckedCreateWithoutUsageRecordsInput = {
@@ -451,6 +537,7 @@ export type FeatureUncheckedCreateWithoutUsageRecordsInput = {
   type: $Enums.FeatureType
   planFeatures?: Prisma.PlanFeatureUncheckedCreateNestedManyWithoutFeatureInput
   usageSummaries?: Prisma.UsageSummaryUncheckedCreateNestedManyWithoutFeatureInput
+  overageSettings?: Prisma.SubscriptionOverageSettingUncheckedCreateNestedManyWithoutFeatureInput
 }
 
 export type FeatureCreateOrConnectWithoutUsageRecordsInput = {
@@ -477,6 +564,7 @@ export type FeatureUpdateWithoutUsageRecordsInput = {
   type?: Prisma.EnumFeatureTypeFieldUpdateOperationsInput | $Enums.FeatureType
   planFeatures?: Prisma.PlanFeatureUpdateManyWithoutFeatureNestedInput
   usageSummaries?: Prisma.UsageSummaryUpdateManyWithoutFeatureNestedInput
+  overageSettings?: Prisma.SubscriptionOverageSettingUpdateManyWithoutFeatureNestedInput
 }
 
 export type FeatureUncheckedUpdateWithoutUsageRecordsInput = {
@@ -487,6 +575,7 @@ export type FeatureUncheckedUpdateWithoutUsageRecordsInput = {
   type?: Prisma.EnumFeatureTypeFieldUpdateOperationsInput | $Enums.FeatureType
   planFeatures?: Prisma.PlanFeatureUncheckedUpdateManyWithoutFeatureNestedInput
   usageSummaries?: Prisma.UsageSummaryUncheckedUpdateManyWithoutFeatureNestedInput
+  overageSettings?: Prisma.SubscriptionOverageSettingUncheckedUpdateManyWithoutFeatureNestedInput
 }
 
 export type FeatureCreateWithoutUsageSummariesInput = {
@@ -497,6 +586,7 @@ export type FeatureCreateWithoutUsageSummariesInput = {
   type: $Enums.FeatureType
   planFeatures?: Prisma.PlanFeatureCreateNestedManyWithoutFeatureInput
   usageRecords?: Prisma.UsageRecordCreateNestedManyWithoutFeatureInput
+  overageSettings?: Prisma.SubscriptionOverageSettingCreateNestedManyWithoutFeatureInput
 }
 
 export type FeatureUncheckedCreateWithoutUsageSummariesInput = {
@@ -507,6 +597,7 @@ export type FeatureUncheckedCreateWithoutUsageSummariesInput = {
   type: $Enums.FeatureType
   planFeatures?: Prisma.PlanFeatureUncheckedCreateNestedManyWithoutFeatureInput
   usageRecords?: Prisma.UsageRecordUncheckedCreateNestedManyWithoutFeatureInput
+  overageSettings?: Prisma.SubscriptionOverageSettingUncheckedCreateNestedManyWithoutFeatureInput
 }
 
 export type FeatureCreateOrConnectWithoutUsageSummariesInput = {
@@ -533,6 +624,7 @@ export type FeatureUpdateWithoutUsageSummariesInput = {
   type?: Prisma.EnumFeatureTypeFieldUpdateOperationsInput | $Enums.FeatureType
   planFeatures?: Prisma.PlanFeatureUpdateManyWithoutFeatureNestedInput
   usageRecords?: Prisma.UsageRecordUpdateManyWithoutFeatureNestedInput
+  overageSettings?: Prisma.SubscriptionOverageSettingUpdateManyWithoutFeatureNestedInput
 }
 
 export type FeatureUncheckedUpdateWithoutUsageSummariesInput = {
@@ -543,6 +635,7 @@ export type FeatureUncheckedUpdateWithoutUsageSummariesInput = {
   type?: Prisma.EnumFeatureTypeFieldUpdateOperationsInput | $Enums.FeatureType
   planFeatures?: Prisma.PlanFeatureUncheckedUpdateManyWithoutFeatureNestedInput
   usageRecords?: Prisma.UsageRecordUncheckedUpdateManyWithoutFeatureNestedInput
+  overageSettings?: Prisma.SubscriptionOverageSettingUncheckedUpdateManyWithoutFeatureNestedInput
 }
 
 
@@ -554,12 +647,14 @@ export type FeatureCountOutputType = {
   planFeatures: number
   usageRecords: number
   usageSummaries: number
+  overageSettings: number
 }
 
 export type FeatureCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   planFeatures?: boolean | FeatureCountOutputTypeCountPlanFeaturesArgs
   usageRecords?: boolean | FeatureCountOutputTypeCountUsageRecordsArgs
   usageSummaries?: boolean | FeatureCountOutputTypeCountUsageSummariesArgs
+  overageSettings?: boolean | FeatureCountOutputTypeCountOverageSettingsArgs
 }
 
 /**
@@ -593,6 +688,13 @@ export type FeatureCountOutputTypeCountUsageSummariesArgs<ExtArgs extends runtim
   where?: Prisma.UsageSummaryWhereInput
 }
 
+/**
+ * FeatureCountOutputType without action
+ */
+export type FeatureCountOutputTypeCountOverageSettingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SubscriptionOverageSettingWhereInput
+}
+
 
 export type FeatureSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -603,6 +705,7 @@ export type FeatureSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   planFeatures?: boolean | Prisma.Feature$planFeaturesArgs<ExtArgs>
   usageRecords?: boolean | Prisma.Feature$usageRecordsArgs<ExtArgs>
   usageSummaries?: boolean | Prisma.Feature$usageSummariesArgs<ExtArgs>
+  overageSettings?: boolean | Prisma.Feature$overageSettingsArgs<ExtArgs>
   _count?: boolean | Prisma.FeatureCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["feature"]>
 
@@ -635,6 +738,7 @@ export type FeatureInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   planFeatures?: boolean | Prisma.Feature$planFeaturesArgs<ExtArgs>
   usageRecords?: boolean | Prisma.Feature$usageRecordsArgs<ExtArgs>
   usageSummaries?: boolean | Prisma.Feature$usageSummariesArgs<ExtArgs>
+  overageSettings?: boolean | Prisma.Feature$overageSettingsArgs<ExtArgs>
   _count?: boolean | Prisma.FeatureCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type FeatureIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -646,6 +750,7 @@ export type $FeaturePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     planFeatures: Prisma.$PlanFeaturePayload<ExtArgs>[]
     usageRecords: Prisma.$UsageRecordPayload<ExtArgs>[]
     usageSummaries: Prisma.$UsageSummaryPayload<ExtArgs>[]
+    overageSettings: Prisma.$SubscriptionOverageSettingPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1050,6 +1155,7 @@ export interface Prisma__FeatureClient<T, Null = never, ExtArgs extends runtime.
   planFeatures<T extends Prisma.Feature$planFeaturesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Feature$planFeaturesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PlanFeaturePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   usageRecords<T extends Prisma.Feature$usageRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Feature$usageRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UsageRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   usageSummaries<T extends Prisma.Feature$usageSummariesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Feature$usageSummariesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UsageSummaryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  overageSettings<T extends Prisma.Feature$overageSettingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Feature$overageSettingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubscriptionOverageSettingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1546,6 +1652,30 @@ export type Feature$usageSummariesArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.UsageSummaryScalarFieldEnum | Prisma.UsageSummaryScalarFieldEnum[]
+}
+
+/**
+ * Feature.overageSettings
+ */
+export type Feature$overageSettingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SubscriptionOverageSetting
+   */
+  select?: Prisma.SubscriptionOverageSettingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SubscriptionOverageSetting
+   */
+  omit?: Prisma.SubscriptionOverageSettingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SubscriptionOverageSettingInclude<ExtArgs> | null
+  where?: Prisma.SubscriptionOverageSettingWhereInput
+  orderBy?: Prisma.SubscriptionOverageSettingOrderByWithRelationInput | Prisma.SubscriptionOverageSettingOrderByWithRelationInput[]
+  cursor?: Prisma.SubscriptionOverageSettingWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SubscriptionOverageSettingScalarFieldEnum | Prisma.SubscriptionOverageSettingScalarFieldEnum[]
 }
 
 /**

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Payment Warning</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background-color: #f9fafb;
+      margin: 0;
+      padding: 0;
+    }
+    .wrapper {
+      width: 100%;
+      background-color: #f9fafb;
+      padding: 40px 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .header {
+      background-color: #0f172a;
+      padding: 32px;
+      text-align: center;
+    }
+    .logo {
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .content {
+      padding: 32px;
+    }
+    h1 {
+      color: #dc2626;
+      font-size: 20px;
+      font-weight: 700;
+      margin-top: 0;
+    }
+    p {
+      color: #475569;
+      font-size: 16px;
+      line-height: 24px;
+    }
+    .failed-box {
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .failed-title {
+      color: #991b1b;
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+    .failed-details {
+      width: 100%;
+    }
+    .failed-details td {
+      padding: 6px 0;
+      font-size: 14px;
+      color: #374151;
+    }
+    .label {
+      font-weight: 600;
+    }
+    .value {
+      text-align: right;
+      font-weight: 700;
+    }
+    .footer {
+      background-color: #f8fafc;
+      padding: 24px 32px;
+      text-align: center;
+      border-top: 1px solid #f1f5f9;
+    }
+    .footer-text {
+      color: #94a3b8;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <div class="logo">SaaS Subscriptions</div>
+      </div>
+      <div class="content">
+        <h1>Renewal Payment Failed</h1>
+        <p>Hello {{customerName}},</p>
+        <p>We were unable to charge your default card on file for your subscription renewal. We will automatically retry this charge.</p>
+        
+        <div class="failed-box">
+          <div class="failed-title">Billing Issue (Retry Attempt: {{attemptNumber}}/5)</div>
+          <table class="failed-details">
+            <tr>
+              <td class="label">Invoice Number</td>
+              <td class="value">{{invoiceNumber}}</td>
+            </tr>
+            <tr>
+              <td class="label">Amount Due</td>
+              <td class="value">{{currency}} {{amountDue}}</td>
+            </tr>
+            <tr>
+              <td class="label">Status</td>
+              <td class="value" style="color: #dc2626;">PAST_DUE</td>
+            </tr>
+            <tr>
+              <td class="label">Next Retry Attempt</td>
+              <td class="value">{{nextRetryDate}}</td>
+            </tr>
+          </table>
+        </div>
+
+        <p>Please log in to your account and review your card details to avoid subscription restriction.</p>
+      </div>
+      <div class="footer">
+        <p class="footer-text">
+          &copy; 2026 SaaS Inc. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

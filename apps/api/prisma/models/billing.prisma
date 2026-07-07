@@ -95,9 +95,10 @@ model Feature {
   unit String? // "call", "GB", "seat"
   type FeatureType
 
-  planFeatures   PlanFeature[]
-  usageRecords   UsageRecord[]
-  usageSummaries UsageSummary[]
+  planFeatures    PlanFeature[]
+  usageRecords    UsageRecord[]
+  usageSummaries  UsageSummary[]
+  overageSettings SubscriptionOverageSetting[]
 
   @@map("features")
 }
@@ -152,11 +153,12 @@ model Subscription {
   plan     Plan     @relation(fields: [planId], references: [id])
   price    Price    @relation(fields: [priceId], references: [id])
 
-  invoices       Invoice[]
-  usageRecords   UsageRecord[]
-  usageSummaries UsageSummary[]
-  changes        SubscriptionChange[]
-  payments       SubscriptionPayment[]
+  invoices        Invoice[]
+  usageRecords    UsageRecord[]
+  usageSummaries  UsageSummary[]
+  changes         SubscriptionChange[]
+  payments        SubscriptionPayment[]
+  overageSettings SubscriptionOverageSetting[]
 
   @@index([customerId])
   @@index([status])
@@ -224,4 +226,19 @@ model SystemSetting {
   updatedBy   String? // admin userId who last changed this
 
   @@map("system_settings")
+}
+
+model SubscriptionOverageSetting {
+  id             String   @id @default(cuid())
+  subscriptionId String
+  featureId      String
+  enabled        Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  feature      Feature      @relation(fields: [featureId], references: [id])
+
+  @@unique([subscriptionId, featureId])
+  @@map("subscription_overage_settings")
 }

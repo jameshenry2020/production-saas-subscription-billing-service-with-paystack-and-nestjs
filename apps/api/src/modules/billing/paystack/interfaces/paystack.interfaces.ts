@@ -101,6 +101,7 @@ export interface PaystackSubscription {
   cron_expression: string;
   next_payment_date: string;
   open_invoice: string | null;
+  authorization?: PaystackAuthorization;
   createdAt: string;
   updatedAt: string;
 }

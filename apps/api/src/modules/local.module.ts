@@ -5,9 +5,10 @@ import { UserService } from "./users/user.service";
 import { UserModule } from "./users/user.module";
 import { SubscriptionModule } from "./billing/subscription/subscription.module";
 import { WebhookModule } from "./billing/webhook/webhook.module";
+import { UsageModule } from "./billing/usage/usage.module";
 
 @Module({
-    imports: [AuthModule, BillingModule, UserModule, SubscriptionModule, WebhookModule],
+    imports: [AuthModule, BillingModule, UserModule, SubscriptionModule, WebhookModule, UsageModule],
     providers: [],
     exports: []
 })

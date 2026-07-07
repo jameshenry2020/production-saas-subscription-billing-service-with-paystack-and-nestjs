@@ -85,6 +85,11 @@ export type SubscriptionPayment = Prisma.SubscriptionPaymentModel
  */
 export type SystemSetting = Prisma.SystemSettingModel
 /**
+ * Model SubscriptionOverageSetting
+ * 
+ */
+export type SubscriptionOverageSetting = Prisma.SubscriptionOverageSettingModel
+/**
  * Model Invoice
  * 
  */

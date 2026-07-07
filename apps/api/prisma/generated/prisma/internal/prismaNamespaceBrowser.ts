@@ -60,6 +60,7 @@ export const ModelName = {
   SubscriptionChange: 'SubscriptionChange',
   SubscriptionPayment: 'SubscriptionPayment',
   SystemSetting: 'SystemSetting',
+  SubscriptionOverageSetting: 'SubscriptionOverageSetting',
   Invoice: 'Invoice',
   InvoiceItem: 'InvoiceItem',
   DunningAttempt: 'DunningAttempt',
@@ -233,6 +234,18 @@ export const SystemSettingScalarFieldEnum = {
 } as const
 
 export type SystemSettingScalarFieldEnum = (typeof SystemSettingScalarFieldEnum)[keyof typeof SystemSettingScalarFieldEnum]
+
+
+export const SubscriptionOverageSettingScalarFieldEnum = {
+  id: 'id',
+  subscriptionId: 'subscriptionId',
+  featureId: 'featureId',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SubscriptionOverageSettingScalarFieldEnum = (typeof SubscriptionOverageSettingScalarFieldEnum)[keyof typeof SubscriptionOverageSettingScalarFieldEnum]
 
 
 export const InvoiceScalarFieldEnum = {

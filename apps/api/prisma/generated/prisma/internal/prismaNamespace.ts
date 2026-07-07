@@ -393,6 +393,7 @@ export const ModelName = {
   SubscriptionChange: 'SubscriptionChange',
   SubscriptionPayment: 'SubscriptionPayment',
   SystemSetting: 'SystemSetting',
+  SubscriptionOverageSetting: 'SubscriptionOverageSetting',
   Invoice: 'Invoice',
   InvoiceItem: 'InvoiceItem',
   DunningAttempt: 'DunningAttempt',
@@ -418,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "product" | "plan" | "price" | "feature" | "planFeature" | "subscription" | "subscriptionChange" | "subscriptionPayment" | "systemSetting" | "invoice" | "invoiceItem" | "dunningAttempt" | "transaction" | "user" | "customer" | "paymentMethod" | "usageRecord" | "usageSummary" | "idempotencyKey"
+    modelProps: "product" | "plan" | "price" | "feature" | "planFeature" | "subscription" | "subscriptionChange" | "subscriptionPayment" | "systemSetting" | "subscriptionOverageSetting" | "invoice" | "invoiceItem" | "dunningAttempt" | "transaction" | "user" | "customer" | "paymentMethod" | "usageRecord" | "usageSummary" | "idempotencyKey"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1085,6 +1086,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.SystemSettingCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.SystemSettingCountAggregateOutputType> | number
+        }
+      }
+    }
+    SubscriptionOverageSetting: {
+      payload: Prisma.$SubscriptionOverageSettingPayload<ExtArgs>
+      fields: Prisma.SubscriptionOverageSettingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SubscriptionOverageSettingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionOverageSettingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SubscriptionOverageSettingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionOverageSettingPayload>
+        }
+        findFirst: {
+          args: Prisma.SubscriptionOverageSettingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionOverageSettingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SubscriptionOverageSettingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionOverageSettingPayload>
+        }
+        findMany: {
+          args: Prisma.SubscriptionOverageSettingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionOverageSettingPayload>[]
+        }
+        create: {
+          args: Prisma.SubscriptionOverageSettingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionOverageSettingPayload>
+        }
+        createMany: {
+          args: Prisma.SubscriptionOverageSettingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SubscriptionOverageSettingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionOverageSettingPayload>[]
+        }
+        delete: {
+          args: Prisma.SubscriptionOverageSettingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionOverageSettingPayload>
+        }
+        update: {
+          args: Prisma.SubscriptionOverageSettingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionOverageSettingPayload>
+        }
+        deleteMany: {
+          args: Prisma.SubscriptionOverageSettingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SubscriptionOverageSettingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SubscriptionOverageSettingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionOverageSettingPayload>[]
+        }
+        upsert: {
+          args: Prisma.SubscriptionOverageSettingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubscriptionOverageSettingPayload>
+        }
+        aggregate: {
+          args: Prisma.SubscriptionOverageSettingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSubscriptionOverageSetting>
+        }
+        groupBy: {
+          args: Prisma.SubscriptionOverageSettingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SubscriptionOverageSettingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SubscriptionOverageSettingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SubscriptionOverageSettingCountAggregateOutputType> | number
         }
       }
     }
@@ -2014,6 +2089,18 @@ export const SystemSettingScalarFieldEnum = {
 export type SystemSettingScalarFieldEnum = (typeof SystemSettingScalarFieldEnum)[keyof typeof SystemSettingScalarFieldEnum]
 
 
+export const SubscriptionOverageSettingScalarFieldEnum = {
+  id: 'id',
+  subscriptionId: 'subscriptionId',
+  featureId: 'featureId',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SubscriptionOverageSettingScalarFieldEnum = (typeof SubscriptionOverageSettingScalarFieldEnum)[keyof typeof SubscriptionOverageSettingScalarFieldEnum]
+
+
 export const InvoiceScalarFieldEnum = {
   id: 'id',
   invoiceNumber: 'invoiceNumber',
@@ -2566,6 +2653,7 @@ export type GlobalOmitConfig = {
   subscriptionChange?: Prisma.SubscriptionChangeOmit
   subscriptionPayment?: Prisma.SubscriptionPaymentOmit
   systemSetting?: Prisma.SystemSettingOmit
+  subscriptionOverageSetting?: Prisma.SubscriptionOverageSettingOmit
   invoice?: Prisma.InvoiceOmit
   invoiceItem?: Prisma.InvoiceItemOmit
   dunningAttempt?: Prisma.DunningAttemptOmit

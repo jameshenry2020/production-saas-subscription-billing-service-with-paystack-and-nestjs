@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Usage Quota Warning</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background-color: #f9fafb;
+      margin: 0;
+      padding: 0;
+    }
+    .wrapper {
+      width: 100%;
+      background-color: #f9fafb;
+      padding: 40px 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .header {
+      background-color: #0f172a;
+      padding: 32px;
+      text-align: center;
+    }
+    .logo {
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .content {
+      padding: 32px;
+    }
+    h1 {
+      color: #1e293b;
+      font-size: 20px;
+      font-weight: 700;
+      margin-top: 0;
+    }
+    p {
+      color: #475569;
+      font-size: 16px;
+      line-height: 24px;
+    }
+    .warning-box {
+      background-color: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 16px;
+      margin-bottom: 24px;
+      border-radius: 6px;
+    }
+    .warning-title {
+      color: #78350f;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .warning-desc {
+      color: #b45309;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    .btn-container {
+      text-align: center;
+      margin: 32px 0;
+    }
+    .btn {
+      background-color: #f59e0b;
+      color: #ffffff !important;
+      display: inline-block;
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 8px;
+    }
+    .footer {
+      background-color: #f8fafc;
+      padding: 24px 32px;
+      text-align: center;
+      border-top: 1px solid #f1f5f9;
+    }
+    .footer-text {
+      color: #94a3b8;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <div class="logo">SaaS Subscriptions</div>
+      </div>
+      <div class="content">
+        <h1>Usage Quota Alert</h1>
+        <p>Hello {{customerName}},</p>
+        <p>This is a quick notification to let you know that your usage of the <strong>{{featureKey}}</strong> feature has reached a warning threshold.</p>
+        
+        <div class="warning-box">
+          <div class="warning-title">Quota Usage: {{threshold}}%</div>
+          <div class="warning-desc">You have used {{currentUsage}} of your allowed {{limit}} units in the current billing cycle.</div>
+        </div>
+
+        <p>To ensure uninterrupted service and prevent requests from being blocked, we recommend enabling overage billing. You will only be billed for additional units you actually consume.</p>
+
+        <div class="btn-container">
+          <a href="{{activateOverageUrl}}" class="btn">Activate Overage Billing</a>
+        </div>
+      </div>
+      <div class="footer">
+        <p class="footer-text">
+          &copy; 2026 SaaS Inc. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

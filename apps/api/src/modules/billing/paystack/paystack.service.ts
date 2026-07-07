@@ -135,7 +135,7 @@ export class PaystackService {
       const response = await firstValueFrom(
         this.httpService.post("/transaction/initialize", {
           email: params.email,
-          amount: params.amount,
+          amount: Math.round(params.amount * 100),
           callback_url: params.callbackUrl,
           reference: params.reference,
           plan: params.plan,
@@ -170,7 +170,7 @@ export class PaystackService {
       const response = await firstValueFrom(
         this.httpService.post("/transaction/charge_authorization", {
           email: params.email,
-          amount: params.amount,
+          amount: Math.round(params.amount * 100),
           authorization_code: params.authorizationCode,
           reference: params.reference,
           metadata: params.metadata,
@@ -239,6 +239,17 @@ export class PaystackService {
       );
     } catch (error) {
       this.handleError(error, "enableSubscription");
+    }
+  }
+
+  async getSubscriptionManageLink(subscriptionCode: string): Promise<{ link: string }> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(`/subscription/${subscriptionCode}/manage/link`)
+      );
+      return response.data.data;
+    } catch (error) {
+      this.handleError(error, "getSubscriptionManageLink");
     }
   }
 
